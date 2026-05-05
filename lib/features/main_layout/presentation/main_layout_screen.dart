@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_kaplan/shared/widgets/aurora_fab.dart';
+import '../../../core/providers/theme_provider.dart';
 
-class MainLayoutScreen extends StatelessWidget {
+class MainLayoutScreen extends ConsumerWidget {
   final Widget child;
 
   const MainLayoutScreen({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    
     final String location = GoRouterState.of(context).uri.path;
 
     int currentIndex = 0;
@@ -23,15 +29,16 @@ class MainLayoutScreen extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       body: child,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFF23294C), width: 1)),
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: colorScheme.outline.withOpacity(0.1), width: 1)),
         ),
         child: BottomNavigationBar(
-          backgroundColor: const Color(0xFF171B36),
-          selectedItemColor: const Color(0xFF6B5BFC),
-          unselectedItemColor: Colors.grey.shade700,
+          backgroundColor: isDarkMode ? const Color(0xFF171B36) : colorScheme.surface,
+          selectedItemColor: colorScheme.primary,
+          unselectedItemColor: colorScheme.onSurfaceVariant.withOpacity(0.5),
           currentIndex: currentIndex,
           type: BottomNavigationBarType.fixed,
           selectedFontSize: 11,
@@ -55,25 +62,25 @@ class MainLayoutScreen extends StatelessWidget {
                 break;
             }
           },
-          items: [
-            const BottomNavigationBarItem(
+          items: const [
+            BottomNavigationBarItem(
               icon: Icon(Icons.school_rounded),
               label: 'Aprender',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.leaderboard_rounded),
               label: 'Ranking',
             ),
             // Espacio vacío para el FAB central
             BottomNavigationBarItem(
-              icon: const SizedBox(height: 24),
+              icon: SizedBox(height: 24),
               label: '',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.emoji_events_rounded),
               label: 'Ligas',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.person_rounded),
               label: 'Cuenta',
             ),

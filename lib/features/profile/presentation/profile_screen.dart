@@ -1,23 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/providers/locale_provider.dart';
+import '../../../core/providers/theme_provider.dart';
+import '../../../core/providers/notifications_provider.dart';
+import '../../../core/providers/sound_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.watch(localeProvider);
+    final isSpanish = currentLocale.languageCode == 'es';
+    final themeMode = ref.watch(themeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF171B36),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF171B36),
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        title: const Text('Mi Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),
+        title: Text(
+          isSpanish ? 'Mi Cuenta' : 'My Account',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.grey),
+            icon: Icon(Icons.settings, color: colorScheme.onSurfaceVariant),
             onPressed: () {
-              _showSettingsSheet(context);
+              _showSettingsSheet(context, ref, isSpanish);
             },
           ),
         ],
@@ -28,25 +49,29 @@ class ProfileScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 8),
             // Avatar y nombre
-            const CircleAvatar(
+            CircleAvatar(
               radius: 48,
-              backgroundColor: Color(0xFF6B5BFC),
-              child: Icon(Icons.person, size: 48, color: Colors.white),
+              backgroundColor: colorScheme.primary,
+              child: const Icon(Icons.person, size: 48, color: Colors.white),
             ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'Coder RIWI',
-              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              '@coder_riwi • Nivel 5',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+              isSpanish ? '@coder_riwi • Nivel 5' : '@coder_riwi • Level 5',
+              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
-              'Se unió en abril 2026',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              isSpanish ? 'Se unió en abril 2026' : 'Joined in April 2026',
+              style: TextStyle(color: colorScheme.outline, fontSize: 12),
             ),
 
             const SizedBox(height: 24),
@@ -54,32 +79,92 @@ class ProfileScreen extends StatelessWidget {
             // Estadísticas
             Row(
               children: [
-                _buildStatCard(Icons.local_fire_department, '12', 'Racha\nactual', Colors.orange),
+                _buildStatCard(
+                  context,
+                  Icons.local_fire_department,
+                  '0',
+                  isSpanish ? 'Racha\nactual' : 'Current\nstreak',
+                  Colors.orange,
+                ),
                 const SizedBox(width: 10),
-                _buildStatCard(Icons.star_rounded, '1,200', 'XP\ntotal', Colors.amber),
+                _buildStatCard(
+                  context,
+                  Icons.star_rounded,
+                  '0',
+                  isSpanish ? 'XP\ntotal' : 'Total\nXP',
+                  Colors.amber,
+                ),
                 const SizedBox(width: 10),
-                _buildStatCard(Icons.emoji_events, 'Oro', 'Liga\nactual', const Color(0xFFFFD700)),
+                _buildStatCard(
+                  context,
+                  Icons.emoji_events,
+                  isSpanish ? 'Bronce' : 'Bronze',
+                  isSpanish ? 'Liga\nactual' : 'Current\nleague',
+                  const Color(0xFFCD7F32),
+                ),
                 const SizedBox(width: 10),
-                _buildStatCard(Icons.check_circle, '14', 'Lecciones\nhechas', Colors.green),
+                _buildStatCard(
+                  context,
+                  Icons.check_circle,
+                  '0',
+                  isSpanish ? 'Lecciones\nhechas' : 'Lessons\ndone',
+                  Colors.green,
+                ),
               ],
             ).animate().fadeIn(duration: 500.ms, delay: 200.ms),
 
             const SizedBox(height: 24),
 
             // Logros
-            _buildSectionTitle('Logros'),
+            _buildSectionTitle(context, isSpanish ? 'Logros' : 'Achievements'),
             const SizedBox(height: 12),
             SizedBox(
               height: 100,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _buildAchievementBadge(Icons.local_fire_department, 'Racha de 7', Colors.orange, true),
-                  _buildAchievementBadge(Icons.school, 'Primera lección', const Color(0xFF6B5BFC), true),
-                  _buildAchievementBadge(Icons.code, 'Coder Jr.', Colors.cyan, true),
-                  _buildAchievementBadge(Icons.translate, '50 traducciones', Colors.green, false),
-                  _buildAchievementBadge(Icons.psychology, 'Empatía Pro', Colors.pink, false),
-                  _buildAchievementBadge(Icons.diamond, 'Liga Diamante', Colors.cyan, false),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.local_fire_department,
+                    isSpanish ? 'Racha de 7' : '7 Day Streak',
+                    Colors.orange,
+                    false,
+                  ),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.school,
+                    isSpanish ? 'Primera lección' : 'First lesson',
+                    colorScheme.primary,
+                    false,
+                  ),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.code,
+                    'Coder Jr.',
+                    Colors.cyan,
+                    false,
+                  ),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.translate,
+                    isSpanish ? '50 traducciones' : '50 translations',
+                    Colors.green,
+                    false,
+                  ),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.psychology,
+                    isSpanish ? 'Empatía Pro' : 'Pro Empathy',
+                    Colors.pink,
+                    false,
+                  ),
+                  _buildAchievementBadge(
+                    context,
+                    Icons.diamond,
+                    isSpanish ? 'Liga Diamante' : 'Diamond League',
+                    Colors.cyan,
+                    false,
+                  ),
                 ],
               ),
             ).animate().fadeIn(duration: 500.ms, delay: 300.ms),
@@ -87,27 +172,69 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Progreso por curso
-            _buildSectionTitle('Progreso por Curso'),
+            _buildSectionTitle(context, isSpanish ? 'Progreso por Curso' : 'Course Progress'),
             const SizedBox(height: 12),
-            _buildCourseProgress('Inglés', Icons.translate, 5, 20, Colors.green),
+            _buildCourseProgress(context, isSpanish ? 'Inglés' : 'English', Icons.translate, 0, 20, Colors.green),
             const SizedBox(height: 10),
-            _buildCourseProgress('Desarrollo', Icons.code, 3, 15, const Color(0xFF6B5BFC)),
+            _buildCourseProgress(
+                context, isSpanish ? 'Desarrollo' : 'Development', Icons.code, 0, 15, colorScheme.primary),
             const SizedBox(height: 10),
-            _buildCourseProgress('Soft Skills', Icons.psychology, 2, 12, Colors.deepOrange),
+            _buildCourseProgress(context, 'Soft Skills', Icons.psychology, 0, 12, Colors.deepOrange),
 
             const SizedBox(height: 24),
 
             // Opciones de cuenta
-            _buildSectionTitle('Configuración'),
+            _buildSectionTitle(context, isSpanish ? 'Configuración' : 'Settings'),
             const SizedBox(height: 12),
-            _buildSettingItem(Icons.notifications_outlined, 'Notificaciones', 'Recordatorios diarios', context),
-            _buildSettingItem(Icons.language, 'Idioma de la app', 'Español', context),
-            _buildSettingItem(Icons.dark_mode_outlined, 'Tema oscuro', 'Activado', context),
-            _buildSettingItem(Icons.volume_up_outlined, 'Sonidos', 'Activados', context),
-            _buildSettingItem(Icons.privacy_tip_outlined, 'Privacidad', 'Perfil público', context),
-            _buildSettingItem(Icons.help_outline, 'Ayuda y soporte', '', context),
+            _buildSettingItem(
+              context,
+              Icons.notifications_outlined,
+              isSpanish ? 'Notificaciones' : 'Notifications',
+              isSpanish ? 'Recordatorios diarios' : 'Daily reminders',
+              onTap: () => context.push('/notifications'),
+            ),
+            _buildSettingItem(
+              context,
+              Icons.language,
+              isSpanish ? 'Idioma de la app' : 'App Language',
+              isSpanish ? 'Español' : 'English',
+              onTap: () => _showLanguageDialog(context, ref),
+            ),
+            _buildSettingItem(
+              context,
+              isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              isSpanish ? 'Modo de visualización' : 'Display Mode',
+              isSpanish
+                  ? (isDarkMode ? 'Oscuro' : 'Claro')
+                  : (isDarkMode ? 'Dark' : 'Light'),
+              onTap: () {
+                ref.read(themeProvider.notifier).state =
+                    isDarkMode ? ThemeMode.light : ThemeMode.dark;
+              },
+            ),
+            _buildSettingItem(
+              context,
+              Icons.volume_up_outlined,
+              isSpanish ? 'Sonidos' : 'Sounds',
+              isSpanish ? 'Activados' : 'Enabled',
+              onTap: () => context.push('/sounds'),
+            ),
+            _buildSettingItem(
+              context,
+              Icons.privacy_tip_outlined,
+              isSpanish ? 'Privacidad' : 'Privacy',
+              isSpanish ? 'Perfil público' : 'Public profile',
+              onTap: () {},
+            ),
+            _buildSettingItem(
+              context,
+              Icons.help_outline,
+              isSpanish ? 'Ayuda y soporte' : 'Help & Support',
+              '',
+              onTap: () {},
+            ),
             const SizedBox(height: 12),
-            _buildLogoutButton(context),
+            _buildLogoutButton(context, isSpanish),
             const SizedBox(height: 32),
           ],
         ),
@@ -115,38 +242,31 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
+  void _showLanguageDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          'Seleccionar Idioma / Select Language',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(IconData icon, String value, String label, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF23294C),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 6),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+            ListTile(
+              title: Text('Español', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              onTap: () {
+                ref.read(localeProvider.notifier).state = const Locale('es');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('English', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              onTap: () {
+                ref.read(localeProvider.notifier).state = const Locale('en');
+                Navigator.pop(context);
+              },
             ),
           ],
         ),
@@ -154,7 +274,55 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAchievementBadge(IconData icon, String label, Color color, bool unlocked) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, IconData icon, String value, String label, Color color) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAchievementBadge(BuildContext context, IconData icon, String label, Color color, bool unlocked) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: 80,
       margin: const EdgeInsets.only(right: 12),
@@ -165,15 +333,15 @@ class ProfileScreen extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: unlocked ? color.withOpacity(0.2) : Colors.grey.shade800,
+              color: unlocked ? color.withOpacity(0.2) : colorScheme.surfaceContainerHighest,
               border: Border.all(
-                color: unlocked ? color : Colors.grey.shade700,
+                color: unlocked ? color : colorScheme.outline.withOpacity(0.3),
                 width: 2,
               ),
             ),
             child: Icon(
               icon,
-              color: unlocked ? color : Colors.grey.shade600,
+              color: unlocked ? color : colorScheme.outline,
               size: 28,
             ),
           ),
@@ -182,7 +350,7 @@ class ProfileScreen extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: unlocked ? Colors.white : Colors.grey.shade600,
+              color: unlocked ? colorScheme.onSurface : colorScheme.outline,
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
@@ -194,11 +362,13 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCourseProgress(String name, IconData icon, int completed, int total, Color color) {
+  Widget _buildCourseProgress(
+      BuildContext context, String name, IconData icon, int completed, int total, Color color) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF23294C),
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -220,8 +390,15 @@ class ProfileScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text('$completed/$total', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text('$completed/$total', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -230,7 +407,7 @@ class ProfileScreen extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: completed / total,
                     minHeight: 8,
-                    backgroundColor: Colors.grey.shade800,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
                     color: color,
                   ),
                 ),
@@ -242,7 +419,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingItem(IconData icon, String title, String subtitle, BuildContext context) {
+  Widget _buildSettingItem(BuildContext context, IconData icon, String title, String subtitle,
+      {required VoidCallback onTap}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       child: ListTile(
@@ -251,29 +430,29 @@ class ProfileScreen extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF23294C),
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF6B5BFC), size: 22),
+          child: Icon(icon, color: colorScheme.primary, size: 22),
         ),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        title: Text(title, style: TextStyle(color: colorScheme.onSurface, fontSize: 15)),
         subtitle: subtitle.isNotEmpty
-            ? Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12))
+            ? Text(subtitle, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12))
             : null,
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 22),
+        trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant, size: 22),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildLogoutButton(BuildContext context, bool isSpanish) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () {},
         icon: const Icon(Icons.logout, size: 20),
-        label: const Text('Cerrar Sesión', style: TextStyle(fontSize: 16)),
+        label: Text(isSpanish ? 'Cerrar Sesión' : 'Logout', style: const TextStyle(fontSize: 16)),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red.shade400,
           side: BorderSide(color: Colors.red.shade400),
@@ -284,66 +463,98 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showSettingsSheet(BuildContext context) {
+  void _showSettingsSheet(BuildContext context, WidgetRef ref, bool isSpanish) {
+    final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E2344),
+      backgroundColor: colorScheme.surface,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade600,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.outline.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    isSpanish ? 'Ajustes rápidos' : 'Quick Settings',
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildToggleTile(
+                    context,
+                    isSpanish ? 'Recordatorio diario' : 'Daily reminder',
+                    Icons.alarm,
+                    ref.watch(notificationsProvider).dailyReminders,
+                    onChanged: (val) => ref.read(notificationsProvider.notifier).toggleDailyReminders(),
+                  ),
+                  _buildToggleTile(
+                    context,
+                    isSpanish ? 'Sonidos de la app' : 'App sounds',
+                    Icons.volume_up,
+                    !ref.watch(soundProvider).isMuted,
+                    onChanged: (val) => ref.read(soundProvider.notifier).toggleMute(),
+                  ),
+                  _buildToggleTile(
+                    context,
+                    isSpanish ? 'Vibración' : 'Vibration',
+                    Icons.vibration,
+                    false,
+                    onChanged: (val) {},
+                  ),
+                  _buildToggleTile(
+                    context,
+                    isSpanish ? 'Modo offline' : 'Offline mode',
+                    Icons.wifi_off,
+                    false,
+                    onChanged: (val) {},
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Ajustes rápidos',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              _buildToggleTile('Recordatorio diario', Icons.alarm, true),
-              _buildToggleTile('Sonidos de la app', Icons.volume_up, true),
-              _buildToggleTile('Vibración', Icons.vibration, false),
-              _buildToggleTile('Modo offline', Icons.wifi_off, false),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildToggleTile(String title, IconData icon, bool defaultVal) {
-    return StatefulBuilder(
-      builder: (context, setTileState) {
-        bool isOn = defaultVal;
-        return SwitchListTile(
-          title: Row(
-            children: [
-              Icon(icon, color: const Color(0xFF6B5BFC), size: 22),
-              const SizedBox(width: 12),
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-            ],
-          ),
-          value: isOn,
-          activeColor: const Color(0xFF6B5BFC),
-          onChanged: (val) {
-            setTileState(() {
-              isOn = val;
-            });
-          },
-        );
-      },
+  Widget _buildToggleTile(BuildContext context, String title, IconData icon, bool value,
+      {required ValueChanged<bool> onChanged}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SwitchListTile(
+      title: Row(
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 22),
+          const SizedBox(width: 12),
+          Text(title, style: TextStyle(color: colorScheme.onSurface, fontSize: 15)),
+        ],
+      ),
+      value: value,
+      activeThumbColor: colorScheme.primary,
+      onChanged: onChanged,
     );
   }
 }

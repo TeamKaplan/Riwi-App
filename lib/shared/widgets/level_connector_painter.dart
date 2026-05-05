@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 /// Pinta las líneas LED que conectan los niveles
 class LevelConnectorPainter extends CustomPainter {

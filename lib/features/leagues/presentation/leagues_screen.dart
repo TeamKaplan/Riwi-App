@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/locale_provider.dart';
 
-class LeaguesScreen extends StatelessWidget {
+class LeaguesScreen extends ConsumerWidget {
   const LeaguesScreen({super.key});
 
-  // Datos de ligas
-  static const int _userXP = 1200;
-  static const int _currentLeagueIndex = 2; // Oro
+  // Datos de ligas reiniciados
+  static const int _userXP = 0;
+  static const int _currentLeagueIndex = 4; // Bronce
 
   static final List<Map<String, dynamic>> _leagues = [
     {
       'name': 'Diamante',
+      'nameEn': 'Diamond',
       'icon': Icons.diamond,
       'color': const Color(0xFF00BCD4),
       'minXP': 5000,
@@ -18,6 +21,7 @@ class LeaguesScreen extends StatelessWidget {
     },
     {
       'name': 'Platino',
+      'nameEn': 'Platinum',
       'icon': Icons.workspace_premium,
       'color': const Color(0xFF90A4AE),
       'minXP': 3000,
@@ -25,6 +29,7 @@ class LeaguesScreen extends StatelessWidget {
     },
     {
       'name': 'Oro',
+      'nameEn': 'Gold',
       'icon': Icons.emoji_events,
       'color': const Color(0xFFFFD700),
       'minXP': 1000,
@@ -32,6 +37,7 @@ class LeaguesScreen extends StatelessWidget {
     },
     {
       'name': 'Plata',
+      'nameEn': 'Silver',
       'icon': Icons.military_tech,
       'color': const Color(0xFFC0C0C0),
       'minXP': 500,
@@ -39,6 +45,7 @@ class LeaguesScreen extends StatelessWidget {
     },
     {
       'name': 'Bronce',
+      'nameEn': 'Bronze',
       'icon': Icons.shield,
       'color': const Color(0xFFCD7F32),
       'minXP': 0,
@@ -47,7 +54,11 @@ class LeaguesScreen extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSpanish = ref.watch(localeProvider).languageCode == 'es';
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final currentLeague = _leagues[_currentLeagueIndex];
     final nextLeague = _currentLeagueIndex > 0 ? _leagues[_currentLeagueIndex - 1] : null;
     final currentColor = currentLeague['color'] as Color;
@@ -55,14 +66,16 @@ class LeaguesScreen extends StatelessWidget {
     final currentMinXP = currentLeague['minXP'] as int;
     final progress = (_userXP - currentMinXP) / (nextMinXP - currentMinXP);
 
+    final String leagueName = isSpanish ? currentLeague['name'] : currentLeague['nameEn'];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF171B36),
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF171B36),
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        title: const Text(
-          'Ligas',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+        title: Text(
+          isSpanish ? 'Ligas' : 'Leagues',
+          style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 22),
         ),
         centerTitle: true,
       ),
@@ -112,7 +125,7 @@ class LeaguesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Liga ${currentLeague['name']}',
+                    '${isSpanish ? 'Liga' : 'League'} $leagueName',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
@@ -121,7 +134,7 @@ class LeaguesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$_userXP XP acumulados',
+                    isSpanish ? '$_userXP XP acumulados' : '$_userXP XP accumulated',
                     style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 15),
                   ),
                 ],
@@ -136,9 +149,9 @@ class LeaguesScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF23294C),
+                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF2E3566), width: 1),
+                  border: Border.all(color: colorScheme.outline.withOpacity(0.2), width: 1),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,9 +161,11 @@ class LeaguesScreen extends StatelessWidget {
                         Icon(Icons.trending_up, color: (nextLeague['color'] as Color), size: 22),
                         const SizedBox(width: 8),
                         Text(
-                          'Progreso hacia ${nextLeague['name']}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          isSpanish
+                              ? 'Progreso hacia ${nextLeague['name']}'
+                              : 'Progress towards ${nextLeague['nameEn']}',
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -185,7 +200,7 @@ class LeaguesScreen extends StatelessWidget {
                                       // Fondo
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.grey.shade800,
+                                          color: colorScheme.surfaceContainerHighest,
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                       ),
@@ -248,8 +263,10 @@ class LeaguesScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Center(
                       child: Text(
-                        'Te faltan ${nextMinXP - _userXP} XP para ascender 🚀',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        isSpanish
+                            ? 'Te faltan ${nextMinXP - _userXP} XP para ascender 🚀'
+                            : 'You need ${nextMinXP - _userXP} more XP to promote 🚀',
+                        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
                       ),
                     ),
                   ],
@@ -259,11 +276,11 @@ class LeaguesScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ===== TÍTULO =====
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Todas las Ligas',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                isSpanish ? 'Todas las Ligas' : 'All Leagues',
+                style: TextStyle(color: colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 14),
@@ -275,6 +292,7 @@ class LeaguesScreen extends StatelessWidget {
               final isCompleted = index > _currentLeagueIndex;
               final isLocked = index < _currentLeagueIndex;
               final color = league['color'] as Color;
+              final String name = isSpanish ? league['name'] : league['nameEn'];
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -282,11 +300,11 @@ class LeaguesScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isCurrent
                       ? color.withOpacity(0.12)
-                      : const Color(0xFF23294C),
+                      : colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(16),
                   border: isCurrent
                       ? Border.all(color: color, width: 2)
-                      : Border.all(color: const Color(0xFF2E3566), width: 1),
+                      : Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
                 ),
                 child: Row(
                   children: [
@@ -296,11 +314,11 @@ class LeaguesScreen extends StatelessWidget {
                       height: 50,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isLocked ? Colors.grey.shade800 : color.withOpacity(0.2),
+                        color: isLocked ? colorScheme.outline.withOpacity(0.1) : color.withOpacity(0.2),
                       ),
                       child: Icon(
                         league['icon'] as IconData,
-                        color: isLocked ? Colors.grey.shade600 : color,
+                        color: isLocked ? colorScheme.outline : color,
                         size: 26,
                       ),
                     ),
@@ -311,9 +329,9 @@ class LeaguesScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            league['name'] as String,
+                            name,
                             style: TextStyle(
-                              color: isLocked ? Colors.grey.shade600 : Colors.white,
+                              color: isLocked ? colorScheme.outline : colorScheme.onSurface,
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
                             ),
@@ -322,7 +340,7 @@ class LeaguesScreen extends StatelessWidget {
                           Text(
                             '${league['minXP']} - ${league['maxXP']} XP',
                             style: TextStyle(
-                              color: isLocked ? Colors.grey.shade700 : Colors.grey.shade500,
+                              color: isLocked ? colorScheme.outline.withOpacity(0.7) : colorScheme.onSurfaceVariant,
                               fontSize: 13,
                             ),
                           ),
@@ -337,9 +355,9 @@ class LeaguesScreen extends StatelessWidget {
                           color: color,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          'ACTUAL',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
+                        child: Text(
+                          isSpanish ? 'ACTUAL' : 'CURRENT',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
                         ),
                       )
                     else if (isCompleted)
@@ -353,7 +371,7 @@ class LeaguesScreen extends StatelessWidget {
                         child: const Icon(Icons.check, color: Colors.green, size: 18),
                       )
                     else
-                      Icon(Icons.lock_outline, color: Colors.grey.shade600, size: 22),
+                      Icon(Icons.lock_outline, color: colorScheme.outline, size: 22),
                   ],
                 ),
               ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms);
