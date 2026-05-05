@@ -3,15 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(
-    // ProviderScope es necesario para Riverpod
-    const ProviderScope(
-      child: KaplanApp(),
-    ),
-  );
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
+  runApp(const ProviderScope(child: KaplanApp()));
 }
+
 
 class KaplanApp extends ConsumerWidget {
   const KaplanApp({super.key});
