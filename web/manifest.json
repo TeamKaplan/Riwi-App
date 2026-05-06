@@ -1,11 +1,11 @@
 {
-    "name": "app_kaplan",
-    "short_name": "app_kaplan",
+    "name": "Riwi App",
+    "short_name": "Riwi App",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Riwi App by TeamKaplan.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
