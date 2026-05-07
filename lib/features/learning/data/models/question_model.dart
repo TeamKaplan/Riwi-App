@@ -9,6 +9,8 @@ enum QuestionType {
   miniReading,
   completeDialogue,
   chooseCorrect,
+  completeCode,
+  completeWord,
 }
 
 class QuestionOption {
@@ -29,6 +31,8 @@ class Question {
   final String? readingText;
   final List<String>? blanksAnswers;
   final int? order;
+  final String? codeSnippet;
+  final String? codeLanguage;
 
   Question({
     required this.id,
@@ -42,5 +46,7 @@ class Question {
     this.readingText,
     this.blanksAnswers,
     this.order,
+    this.codeSnippet,
+    this.codeLanguage,
   });
 }

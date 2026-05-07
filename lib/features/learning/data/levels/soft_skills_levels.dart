@@ -1,0 +1,473 @@
+import '../models/level_model.dart';
+import '../models/question_model.dart';
+
+class SoftSkillsLevels {
+  static List<Level> getAllLevels() {
+    return [
+      // =================== NIVEL 1: Comunicación Efectiva ===================
+      Level(
+        id: 1,
+        title: 'Comunicación Efectiva',
+        description: 'Aprende los fundamentos de la comunicación clara y asertiva',
+        difficulty: 'Básico',
+        xpReward: 100,
+        exercises: [
+          Question(
+            id: 'ss1_q1',
+            type: QuestionType.multipleChoice,
+            prompt: '¿Cuál es el componente MÁS importante de la comunicación efectiva?',
+            options: [
+              QuestionOption(text: 'Hablar con un vocabulario complejo', isCorrect: false),
+              QuestionOption(text: 'Escuchar activamente al interlocutor', isCorrect: true),
+              QuestionOption(text: 'Hablar más fuerte que los demás', isCorrect: false),
+              QuestionOption(text: 'Usar muchos gestos con las manos', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss1_q2',
+            type: QuestionType.completeWord,
+            prompt: 'Completa la palabra que describe la capacidad de ponerse en el lugar del otro:',
+            instruction: 'E _ _ _ _ í a',
+            correctAnswer: 'Empatía',
+          ),
+          Question(
+            id: 'ss1_q3',
+            type: QuestionType.trueFalse,
+            prompt: 'La comunicación no verbal (gestos, postura, tono de voz) representa más del 50% del mensaje que transmitimos.',
+            correctAnswer: 'true',
+          ),
+          Question(
+            id: 'ss1_q4',
+            type: QuestionType.fillInTheBlanks,
+            prompt: 'Completa las frases sobre comunicación:',
+            instruction: 'La escucha ___ implica prestar atención completa. / El ___ corporal transmite emociones.',
+            blanksAnswers: ['activa', 'lenguaje'],
+          ),
+          Question(
+            id: 'ss1_q5',
+            type: QuestionType.matching,
+            prompt: 'Relaciona cada tipo de comunicación con su descripción:',
+            matchingLeft: ['Asertiva', 'Pasiva', 'Agresiva', 'Pasivo-agresiva'],
+            matchingRight: [
+              'Expresa opiniones con respeto',
+              'Evita expresar lo que siente',
+              'Impone sus ideas sin considerar a otros',
+              'Expresa hostilidad de forma indirecta',
+            ],
+          ),
+          Question(
+            id: 'ss1_q6',
+            type: QuestionType.multipleChoice,
+            prompt: 'En una reunión de trabajo, tu compañero presenta una idea con la que no estás de acuerdo. ¿Cuál es la respuesta más asertiva?',
+            options: [
+              QuestionOption(text: 'Interrumpirlo y decir que está equivocado', isCorrect: false),
+              QuestionOption(text: 'Quedarte callado y no decir nada', isCorrect: false),
+              QuestionOption(text: 'Esperar tu turno y expresar tu punto de vista con respeto', isCorrect: true),
+              QuestionOption(text: 'Hablar con otros compañeros a sus espaldas', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss1_q7',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La capacidad de transmitir ideas de forma clara y concisa se llama comunicación ___:',
+            instruction: 'e _ _ _ _ _ v a',
+            correctAnswer: 'efectiva',
+          ),
+          Question(
+            id: 'ss1_q8',
+            type: QuestionType.trueFalse,
+            prompt: 'El feedback constructivo debe enfocarse en la persona y no en su comportamiento.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss1_q9',
+            type: QuestionType.orderWords,
+            prompt: 'Ordena los pasos de la escucha activa:',
+            instruction: 'Parafrasear / Prestar atención / Responder / No interrumpir',
+            correctAnswer: 'Prestar atención, No interrumpir, Parafrasear, Responder',
+          ),
+          Question(
+            id: 'ss1_q10',
+            type: QuestionType.miniReading,
+            prompt: 'Lee el caso y responde:',
+            readingText: 'María es líder de un equipo de desarrollo. En una reunión, Pedro expone una idea pero se pone nervioso y no logra explicarla bien. María le dice: "Pedro, entiendo tu punto. ¿Podrías darme un ejemplo concreto para que todos comprendamos mejor tu propuesta?"',
+            instruction: '¿Qué técnica de comunicación usó María? / ¿Por qué fue efectiva su respuesta?',
+            correctAnswer: 'Escucha activa y pregunta abierta. Fue efectiva porque validó a Pedro y lo ayudó a expresarse mejor.',
+          ),
+        ],
+      ),
+
+      // =================== NIVEL 2: Trabajo en Equipo ===================
+      Level(
+        id: 2,
+        title: 'Trabajo en Equipo',
+        description: 'Desarrolla habilidades para colaborar efectivamente en equipos',
+        difficulty: 'Básico',
+        xpReward: 120,
+        exercises: [
+          Question(
+            id: 'ss2_q1',
+            type: QuestionType.multipleChoice,
+            prompt: '¿Cuál NO es una característica de un equipo de alto rendimiento?',
+            options: [
+              QuestionOption(text: 'Confianza entre los miembros', isCorrect: false),
+              QuestionOption(text: 'Objetivos claros y compartidos', isCorrect: false),
+              QuestionOption(text: 'Un líder que toma todas las decisiones solo', isCorrect: true),
+              QuestionOption(text: 'Comunicación abierta y honesta', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss2_q2',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La metodología ágil donde el equipo se reúne diariamente por 15 minutos se llama:',
+            instruction: 'S _ _ _ _ (Daily ___)',
+            correctAnswer: 'Scrum',
+          ),
+          Question(
+            id: 'ss2_q3',
+            type: QuestionType.trueFalse,
+            prompt: 'En un equipo efectivo, los conflictos siempre deben evitarse para mantener la armonía.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss2_q4',
+            type: QuestionType.fillInTheBlanks,
+            prompt: 'Completa los roles en un equipo:',
+            instruction: 'El ___ define la visión del proyecto. / El ___ facilita las reuniones y elimina obstáculos.',
+            blanksAnswers: ['líder', 'facilitador'],
+          ),
+          Question(
+            id: 'ss2_q5',
+            type: QuestionType.matching,
+            prompt: 'Relaciona cada rol del equipo con su función:',
+            matchingLeft: ['Coordinador', 'Creativo', 'Evaluador', 'Implementador'],
+            matchingRight: [
+              'Organiza y delega tareas',
+              'Genera ideas innovadoras',
+              'Analiza opciones objetivamente',
+              'Convierte ideas en acciones',
+            ],
+          ),
+          Question(
+            id: 'ss2_q6',
+            type: QuestionType.multipleChoice,
+            prompt: 'Tu equipo tiene un plazo ajustado y un miembro no está cumpliendo con sus tareas. ¿Qué harías primero?',
+            options: [
+              QuestionOption(text: 'Reportarlo inmediatamente al jefe', isCorrect: false),
+              QuestionOption(text: 'Hablar con él/ella en privado para entender la situación', isCorrect: true),
+              QuestionOption(text: 'Hacer su trabajo además del tuyo', isCorrect: false),
+              QuestionOption(text: 'Ignorar la situación y esperar que se resuelva sola', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss2_q7',
+            type: QuestionType.trueFalse,
+            prompt: 'La diversidad de habilidades y perspectivas en un equipo generalmente mejora los resultados.',
+            correctAnswer: 'true',
+          ),
+          Question(
+            id: 'ss2_q8',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La herramienta visual que muestra el progreso de tareas en columnas (Por hacer, En progreso, Hecho) se llama:',
+            instruction: 'K _ _ _ _ n',
+            correctAnswer: 'Kanban',
+          ),
+          Question(
+            id: 'ss2_q9',
+            type: QuestionType.orderWords,
+            prompt: 'Ordena las etapas de formación de un equipo según Tuckman:',
+            instruction: 'Desempeño / Formación / Conflicto / Normalización',
+            correctAnswer: 'Formación, Conflicto, Normalización, Desempeño',
+          ),
+          Question(
+            id: 'ss2_q10',
+            type: QuestionType.miniReading,
+            prompt: 'Lee el caso y responde:',
+            readingText: 'Un equipo de 5 desarrolladores trabaja en un proyecto. Ana y Carlos tienen ideas opuestas sobre la arquitectura. Ana quiere usar microservicios, Carlos prefiere un monolito. La discusión se ha vuelto tensa y el equipo está dividido.',
+            instruction: '¿Qué debería hacer el equipo para resolver esta situación? / ¿Qué beneficio puede tener este conflicto?',
+            correctAnswer: 'Evaluar objetivamente los pros y contras de cada enfoque con datos. El conflicto puede llevar a una mejor solución que combine lo mejor de ambas ideas.',
+          ),
+        ],
+      ),
+
+      // =================== NIVEL 3: Liderazgo y Gestión del Tiempo ===================
+      Level(
+        id: 3,
+        title: 'Liderazgo y Gestión del Tiempo',
+        description: 'Aprende a liderar y gestionar tu tiempo de forma productiva',
+        difficulty: 'Intermedio',
+        xpReward: 140,
+        exercises: [
+          Question(
+            id: 'ss3_q1',
+            type: QuestionType.multipleChoice,
+            prompt: 'Según la Matriz de Eisenhower, ¿qué debes hacer con las tareas URGENTES pero NO IMPORTANTES?',
+            options: [
+              QuestionOption(text: 'Hacerlas tú mismo inmediatamente', isCorrect: false),
+              QuestionOption(text: 'Delegarlas a alguien más', isCorrect: true),
+              QuestionOption(text: 'Eliminarlas de tu lista', isCorrect: false),
+              QuestionOption(text: 'Programarlas para después', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss3_q2',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La técnica de productividad que alterna 25 minutos de trabajo con 5 de descanso se llama:',
+            instruction: 'P _ _ _ _ _ _ o',
+            correctAnswer: 'Pomodoro',
+          ),
+          Question(
+            id: 'ss3_q3',
+            type: QuestionType.trueFalse,
+            prompt: 'Un buen líder siempre debe tener todas las respuestas y nunca mostrar vulnerabilidad.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss3_q4',
+            type: QuestionType.matching,
+            prompt: 'Relaciona cada estilo de liderazgo con su característica:',
+            matchingLeft: ['Transformacional', 'Democrático', 'Autocrático', 'Servidor'],
+            matchingRight: [
+              'Inspira y motiva al cambio',
+              'Incluye al equipo en decisiones',
+              'Toma decisiones unilaterales',
+              'Prioriza las necesidades del equipo',
+            ],
+          ),
+          Question(
+            id: 'ss3_q5',
+            type: QuestionType.fillInTheBlanks,
+            prompt: 'Completa los principios de gestión del tiempo:',
+            instruction: 'La regla del ___ dice que el 20% de las acciones genera el 80% de los resultados. / ___ es el enemigo de la productividad.',
+            blanksAnswers: ['80/20', 'Procrastinar'],
+          ),
+          Question(
+            id: 'ss3_q6',
+            type: QuestionType.multipleChoice,
+            prompt: 'Estás liderando un sprint y el equipo se siente agotado. ¿Cuál es la mejor acción?',
+            options: [
+              QuestionOption(text: 'Exigir que trabajen más horas para cumplir el plazo', isCorrect: false),
+              QuestionOption(text: 'Reunir al equipo, evaluar prioridades y renegociar el alcance si es necesario', isCorrect: true),
+              QuestionOption(text: 'No hacer nada y esperar que todo salga bien', isCorrect: false),
+              QuestionOption(text: 'Hacer todo el trabajo tú mismo', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss3_q7',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La capacidad de influir positivamente en otros para lograr objetivos comunes se llama:',
+            instruction: 'L _ _ _ _ _ _ _ o',
+            correctAnswer: 'Liderazgo',
+          ),
+          Question(
+            id: 'ss3_q8',
+            type: QuestionType.trueFalse,
+            prompt: 'La técnica de time-boxing consiste en asignar un tiempo fijo a cada tarea y detenerse cuando se acaba.',
+            correctAnswer: 'true',
+          ),
+          Question(
+            id: 'ss3_q9',
+            type: QuestionType.orderWords,
+            prompt: 'Ordena las prioridades según la Matriz de Eisenhower (de mayor a menor prioridad):',
+            instruction: 'Urgente e Importante / No urgente ni importante / No urgente pero importante / Urgente pero no importante',
+            correctAnswer: 'Urgente e Importante, No urgente pero importante, Urgente pero no importante, No urgente ni importante',
+          ),
+          Question(
+            id: 'ss3_q10',
+            type: QuestionType.miniReading,
+            prompt: 'Lee el caso y responde:',
+            readingText: 'David es tech lead de un equipo remoto. Nota que las daily meetings se han vuelto largas e improductivas. Los miembros del equipo a veces no encienden la cámara y hay poca participación. Además, tres miembros del equipo están en diferentes zonas horarias.',
+            instruction: '¿Qué cambios propondrías para mejorar las reuniones? / ¿Cómo abordarías el problema de las zonas horarias?',
+            correctAnswer: 'Establecer agenda clara, limitar a 15 minutos, usar formato estructurado. Rotar horarios o usar comunicación asíncrona.',
+          ),
+        ],
+      ),
+
+      // =================== NIVEL 4: Inteligencia Emocional ===================
+      Level(
+        id: 4,
+        title: 'Inteligencia Emocional',
+        description: 'Desarrolla tu capacidad de reconocer y gestionar emociones',
+        difficulty: 'Intermedio',
+        xpReward: 150,
+        exercises: [
+          Question(
+            id: 'ss4_q1',
+            type: QuestionType.multipleChoice,
+            prompt: '¿Cuáles son los 5 componentes de la Inteligencia Emocional según Daniel Goleman?',
+            options: [
+              QuestionOption(text: 'Autoconciencia, Autorregulación, Motivación, Empatía, Habilidades sociales', isCorrect: true),
+              QuestionOption(text: 'Lógica, Creatividad, Memoria, Atención, Velocidad', isCorrect: false),
+              QuestionOption(text: 'Fuerza, Resistencia, Flexibilidad, Velocidad, Coordinación', isCorrect: false),
+              QuestionOption(text: 'Lectura, Escritura, Matemáticas, Ciencias, Historia', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss4_q2',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La capacidad de reconocer y entender tus propias emociones se llama:',
+            instruction: 'A _ _ _ c _ _ _ _ _ _ _ _ a',
+            correctAnswer: 'Autoconciencia',
+          ),
+          Question(
+            id: 'ss4_q3',
+            type: QuestionType.trueFalse,
+            prompt: 'Las personas con alta inteligencia emocional nunca sienten emociones negativas.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss4_q4',
+            type: QuestionType.matching,
+            prompt: 'Relaciona cada emoción con una estrategia de manejo adecuada:',
+            matchingLeft: ['Frustración', 'Ansiedad', 'Enojo', 'Tristeza'],
+            matchingRight: [
+              'Replantear el problema como un desafío',
+              'Técnicas de respiración y mindfulness',
+              'Pausa antes de responder',
+              'Hablar con alguien de confianza',
+            ],
+          ),
+          Question(
+            id: 'ss4_q5',
+            type: QuestionType.fillInTheBlanks,
+            prompt: 'Completa las frases sobre inteligencia emocional:',
+            instruction: 'La ___ es la capacidad de controlar impulsos y emociones. / La ___ intrínseca viene de dentro de uno mismo.',
+            blanksAnswers: ['autorregulación', 'motivación'],
+          ),
+          Question(
+            id: 'ss4_q6',
+            type: QuestionType.multipleChoice,
+            prompt: 'Recibes una crítica dura sobre tu código en un code review. ¿Cuál es la respuesta emocionalmente inteligente?',
+            options: [
+              QuestionOption(text: 'Responder inmediatamente defendiendo tu código con enojo', isCorrect: false),
+              QuestionOption(text: 'Tomarte un momento, respirar, y luego evaluar objetivamente los comentarios', isCorrect: true),
+              QuestionOption(text: 'Ignorar los comentarios y no hacer cambios', isCorrect: false),
+              QuestionOption(text: 'Quejarte con tus compañeros sobre el reviewer', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss4_q7',
+            type: QuestionType.trueFalse,
+            prompt: 'La empatía implica estar de acuerdo con la otra persona siempre.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss4_q8',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La práctica de atención plena que ayuda a gestionar el estrés se llama:',
+            instruction: 'M _ _ _ f _ _ _ _ _ s',
+            correctAnswer: 'Mindfulness',
+          ),
+          Question(
+            id: 'ss4_q9',
+            type: QuestionType.orderWords,
+            prompt: 'Ordena los pasos para manejar una emoción difícil en el trabajo:',
+            instruction: 'Actuar con intención / Identificar la emoción / Elegir una respuesta / Hacer una pausa',
+            correctAnswer: 'Identificar la emoción, Hacer una pausa, Elegir una respuesta, Actuar con intención',
+          ),
+          Question(
+            id: 'ss4_q10',
+            type: QuestionType.miniReading,
+            prompt: 'Lee el caso y responde:',
+            readingText: 'Sofía acaba de ser promovida a senior developer. Su amigo Juan, que lleva más tiempo en la empresa, no fue considerado. Juan ha comenzado a ser distante y cortante en las reuniones. Sofía nota el cambio y se siente incómoda.',
+            instruction: '¿Qué debería hacer Sofía? / ¿Qué componentes de la inteligencia emocional necesita aplicar?',
+            correctAnswer: 'Hablar con Juan en privado, reconocer sus sentimientos y mantener la relación profesional. Necesita empatía, autoconciencia y habilidades sociales.',
+          ),
+        ],
+      ),
+
+      // =================== NIVEL 5: Resolución de Conflictos y Negociación ===================
+      Level(
+        id: 5,
+        title: 'Resolución de Conflictos',
+        description: 'Domina técnicas de resolución de conflictos y negociación efectiva',
+        difficulty: 'Avanzado',
+        xpReward: 180,
+        exercises: [
+          Question(
+            id: 'ss5_q1',
+            type: QuestionType.multipleChoice,
+            prompt: 'Según el modelo de Thomas-Kilmann, ¿cuál estilo de manejo de conflictos busca una solución ganar-ganar?',
+            options: [
+              QuestionOption(text: 'Competir', isCorrect: false),
+              QuestionOption(text: 'Evitar', isCorrect: false),
+              QuestionOption(text: 'Colaborar', isCorrect: true),
+              QuestionOption(text: 'Acomodar', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss5_q2',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: El proceso de llegar a un acuerdo mutuamente beneficioso se llama:',
+            instruction: 'N _ _ _ _ _ _ _ _ _ n',
+            correctAnswer: 'Negociación',
+          ),
+          Question(
+            id: 'ss5_q3',
+            type: QuestionType.trueFalse,
+            prompt: 'En una negociación efectiva, siempre hay un ganador y un perdedor.',
+            correctAnswer: 'false',
+          ),
+          Question(
+            id: 'ss5_q4',
+            type: QuestionType.matching,
+            prompt: 'Relaciona cada estilo de manejo de conflictos con su descripción:',
+            matchingLeft: ['Competir', 'Colaborar', 'Comprometerse', 'Evitar'],
+            matchingRight: [
+              'Imponer tu posición sobre la otra parte',
+              'Buscar una solución que satisfaga a ambos',
+              'Ambas partes ceden algo',
+              'Retirarse del conflicto',
+            ],
+          ),
+          Question(
+            id: 'ss5_q5',
+            type: QuestionType.fillInTheBlanks,
+            prompt: 'Completa las técnicas de negociación:',
+            instruction: 'El ___ es el mejor resultado alternativo si la negociación falla. / La ___ activa es clave para entender la posición de la otra parte.',
+            blanksAnswers: ['BATNA', 'escucha'],
+          ),
+          Question(
+            id: 'ss5_q6',
+            type: QuestionType.multipleChoice,
+            prompt: 'Dos miembros de tu equipo tienen un conflicto sobre quién debe liderar el nuevo proyecto. ¿Cuál es tu mejor enfoque como mediador?',
+            options: [
+              QuestionOption(text: 'Elegir al que tiene más experiencia sin consultar', isCorrect: false),
+              QuestionOption(text: 'Dejar que lo resuelvan solos sin intervenir', isCorrect: false),
+              QuestionOption(text: 'Reunirlos, escuchar ambas perspectivas y buscar una solución colaborativa', isCorrect: true),
+              QuestionOption(text: 'Rotar el liderazgo cada semana sin preguntar', isCorrect: false),
+            ],
+          ),
+          Question(
+            id: 'ss5_q7',
+            type: QuestionType.trueFalse,
+            prompt: 'Los mensajes en primera persona ("Yo siento..." en vez de "Tú siempre...") ayudan a reducir la defensividad en un conflicto.',
+            correctAnswer: 'true',
+          ),
+          Question(
+            id: 'ss5_q8',
+            type: QuestionType.completeWord,
+            prompt: 'Completa: La técnica de comunicación no violenta fue creada por Marshall ___:',
+            instruction: 'R _ _ _ _ _ _ _ _ g',
+            correctAnswer: 'Rosenberg',
+          ),
+          Question(
+            id: 'ss5_q9',
+            type: QuestionType.orderWords,
+            prompt: 'Ordena los pasos de la Comunicación No Violenta (CNV):',
+            instruction: 'Petición / Observación / Necesidad / Sentimiento',
+            correctAnswer: 'Observación, Sentimiento, Necesidad, Petición',
+          ),
+          Question(
+            id: 'ss5_q10',
+            type: QuestionType.miniReading,
+            prompt: 'Lee el caso y responde:',
+            readingText: 'En una startup, el equipo de frontend quiere usar React y el equipo de backend insiste en que el proyecto se haría más rápido con un framework fullstack como Next.js. La discusión ha paralizado el proyecto por una semana. El CTO debe intervenir, pero quiere que ambos equipos se sientan escuchados.',
+            instruction: '¿Qué estrategia de resolución de conflictos recomendarías? / ¿Cómo podría el CTO facilitar un acuerdo?',
+            correctAnswer: 'Colaborar: reunir ambos equipos, listar pros y contras objetivamente, hacer una prueba de concepto con ambos enfoques y decidir con datos. El CTO debe ser neutral y enfocarse en los objetivos del negocio.',
+          ),
+        ],
+      ),
+    ];
+  }
+}

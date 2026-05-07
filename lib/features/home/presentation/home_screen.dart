@@ -29,14 +29,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         'name': isSpanish ? 'Desarrollo' : 'Development',
         'icon': Icons.code,
         'color': const Color(0xFF6B5BFC),
-        'levels': 15,
+        'levels': 5,
         'currentLevel': 1,
       },
       {
         'name': 'Soft Skills',
         'icon': Icons.psychology,
         'color': const Color(0xFFFF7043),
-        'levels': 12,
+        'levels': 5,
         'currentLevel': 1,
       },
     ];
