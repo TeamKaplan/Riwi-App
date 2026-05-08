@@ -2,30 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/locale_provider.dart';
+import '../data/leaderboard_provider.dart';
+import '../../auth/data/auth_provider.dart';
 
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
 
-  static final List<Map<String, dynamic>> _users = [
-    {'name': 'María García', 'xp': 4520, 'initials': 'MG'},
-    {'name': 'Carlos López', 'xp': 4100, 'initials': 'CL'},
-    {'name': 'Ana Rodríguez', 'xp': 3800, 'initials': 'AR'},
-    {'name': 'David Martínez', 'xp': 1150, 'initials': 'DM'},
-    {'name': 'Laura Sánchez', 'xp': 1080, 'initials': 'LS'},
-    {'name': 'Pedro Ruiz', 'xp': 980, 'initials': 'PR'},
-    {'name': 'Sofía Torres', 'xp': 870, 'initials': 'ST'},
-    {'name': 'Miguel Díaz', 'xp': 750, 'initials': 'MD'},
-    {'name': 'Elena Moreno', 'xp': 620, 'initials': 'EM'},
-    {'name': 'Julián Herrera', 'xp': 510, 'initials': 'JH'},
-    {'name': 'Camila Vargas', 'xp': 430, 'initials': 'CV'},
-    {'name': 'Tú - Coder RIWI', 'xp': 0, 'initials': 'CR'},
-  ];
+  String _getInitials(String name) {
+    if (name.isEmpty) return '??';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSpanish = ref.watch(localeProvider).languageCode == 'es';
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final currentUser = ref.watch(authProvider).value;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -63,80 +61,90 @@ class LeaderboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
+      body: leaderboardAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (users) {
+          if (users.isEmpty) {
+            return const Center(child: Text('No hay datos en el ranking.'));
+          }
+          
+          return Column(
+            children: [
+              const SizedBox(height: 8),
 
-          // ===== PODIO TOP 3 =====
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // 2do lugar
-                Expanded(
-                  child: _buildPodiumPlayer(
-                    context,
-                    user: _users[1],
-                    rank: 2,
-                    podiumHeight: 75,
-                    avatarRadius: 26,
-                    color: const Color(0xFFB0BEC5),
+              // ===== PODIO TOP 3 =====
+              if (users.length >= 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // 2do lugar
+                      Expanded(
+                        child: _buildPodiumPlayer(
+                          context,
+                          user: users[1],
+                          rank: 2,
+                          podiumHeight: 75,
+                          avatarRadius: 26,
+                          color: const Color(0xFFB0BEC5),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // 1er lugar
+                      Expanded(
+                        child: _buildPodiumPlayer(
+                          context,
+                          user: users[0],
+                          rank: 1,
+                          podiumHeight: 105,
+                          avatarRadius: 34,
+                          color: const Color(0xFFFFD700),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // 3er lugar
+                      Expanded(
+                        child: _buildPodiumPlayer(
+                          context,
+                          user: users[2],
+                          rank: 3,
+                          podiumHeight: 55,
+                          avatarRadius: 22,
+                          color: const Color(0xFFCD7F32),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 6),
-                // 1er lugar
-                Expanded(
-                  child: _buildPodiumPlayer(
-                    context,
-                    user: _users[0],
-                    rank: 1,
-                    podiumHeight: 105,
-                    avatarRadius: 34,
-                    color: const Color(0xFFFFD700),
+                ).animate().fadeIn(duration: 700.ms).slideY(begin: -0.15),
+
+              const SizedBox(height: 12),
+
+              // ===== LISTA DEL 4 EN ADELANTE =====
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   ),
-                ),
-                const SizedBox(width: 6),
-                // 3er lugar
-                Expanded(
-                  child: _buildPodiumPlayer(
-                    context,
-                    user: _users[2],
-                    rank: 3,
-                    podiumHeight: 55,
-                    avatarRadius: 22,
-                    color: const Color(0xFFCD7F32),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 700.ms).slideY(begin: -0.15),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 20, bottom: 20),
+                    itemCount: users.length > 3 ? users.length - 3 : 0,
+                    itemBuilder: (context, index) {
+                      final user = users[index + 3];
+                      final rank = index + 4;
+                      final isCurrentUser = currentUser?.id == user['id'];
+                      
+                      String userName = user['full_name'] ?? 'Usuario';
+                      if (isCurrentUser) {
+                        userName = isSpanish ? 'Tú ($userName)' : 'You ($userName)';
+                      }
+                      
+                      final initials = _getInitials(user['full_name'] ?? 'U');
 
-          const SizedBox(height: 12),
-
-          // ===== LISTA DEL 4 EN ADELANTE =====
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 20, bottom: 20),
-                itemCount: _users.length - 3,
-                itemBuilder: (context, index) {
-                  final user = _users[index + 3];
-                  final rank = index + 4;
-                  final isCurrentUser = user['name'].toString().contains('Tú') || user['name'].toString().contains('You');
-                  
-                  // Ajustar nombre según idioma si es el usuario actual
-                  String userName = user['name'] as String;
-                  if (isCurrentUser) {
-                    userName = isSpanish ? 'Tú - Coder RIWI' : 'You - Coder RIWI';
-                  }
-
-                  return Container(
+                      return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
@@ -178,7 +186,7 @@ class LeaderboardScreen extends ConsumerWidget {
                               ? colorScheme.primary.withOpacity(0.3)
                               : colorScheme.surfaceContainerHighest,
                           child: Text(
-                            user['initials'] as String,
+                            initials,
                             style: TextStyle(
                               color: isCurrentUser ? colorScheme.primary : colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.bold,
@@ -230,11 +238,13 @@ class LeaderboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ).animate().fadeIn(delay: (index * 80).ms, duration: 350.ms).slideX(begin: 0.05);
-                },
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -289,7 +299,7 @@ class LeaderboardScreen extends ConsumerWidget {
             radius: avatarRadius,
             backgroundColor: colorScheme.surfaceContainerHighest,
             child: Text(
-              user['initials'] as String,
+              _getInitials(user['full_name'] ?? 'U'),
               style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.bold,
@@ -302,7 +312,7 @@ class LeaderboardScreen extends ConsumerWidget {
 
         // Nombre
         Text(
-          user['name'].toString().split(' ').first,
+          (user['full_name'] ?? 'Usuario').toString().split(' ').first,
           style: TextStyle(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,

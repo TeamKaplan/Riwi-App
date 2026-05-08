@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app_kaplan/shared/widgets/level_node.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../learning/data/progress_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -100,6 +101,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final int totalLevels = course['levels'] as int;
     final int currentLevel = course['currentLevel'] as int;
     final Color courseColor = course['color'] as Color;
+    
+    final progressState = ref.watch(progressProvider);
+    final currentStreak = progressState.value?['streak'] ?? 0;
+    final currentXp = progressState.value?['xp'] ?? 0;
 
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -128,7 +133,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const Icon(Icons.local_fire_department, color: Colors.orange, size: 26),
                 const SizedBox(width: 2),
                 Text(
-                  '12',
+                  '$currentStreak',
                   style: TextStyle(
                     color: Colors.orange.shade400,
                     fontWeight: FontWeight.bold,
@@ -145,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const Icon(Icons.star_rounded, color: Colors.amber, size: 26),
                 const SizedBox(width: 2),
                 Text(
-                  '1200',
+                  '$currentXp',
                   style: TextStyle(
                     color: Colors.amber.shade400,
                     fontWeight: FontWeight.bold,
@@ -267,7 +272,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             icon: levelNumber % 5 == 0 ? Icons.inventory_2 : (course['icon'] as IconData),
                             isChest: levelNumber % 5 == 0,
                             progress: levelNumber == currentLevel ? 0.4 : 0.0,
-                            onTap: () => context.push('/lesson/$levelNumber'),
+                            onTap: () {
+                              // Build lessonId: "english_1", "development_2", "soft_skills_3"
+                              final trackKeys = ['english', 'development', 'soft_skills'];
+                              final trackKey = trackKeys[_selectedCourse];
+                              context.push('/lesson/${trackKey}_$levelNumber');
+                            },
                           ),
                         ],
                       ),

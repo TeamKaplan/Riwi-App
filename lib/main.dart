@@ -5,8 +5,21 @@ import 'core/providers/locale_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 Future<void> main() async {
-  await dotenv.load(fileName: ".env");
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print('Warning: .env file not found, using defaults');
+  }
+
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? 'https://default.supabase.co',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'default-anon-key',
+  );
+
   runApp(const ProviderScope(child: KaplanApp()));
 }
 

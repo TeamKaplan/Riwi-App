@@ -10,12 +10,27 @@ import '../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../features/leagues/presentation/leagues_screen.dart';
 import '../features/ai_tutor/presentation/ai_tutor_screen.dart';
 import '../features/main_layout/presentation/main_layout_screen.dart';
-
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/data/auth_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 // GoRouter configuration
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      // Bypass login - go directly to app
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
       ShellRoute(
         builder: (context, state, child) {
           return MainLayoutScreen(child: child);
@@ -52,10 +67,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: '/lesson/:id',
+        path: '/lesson/:lessonId',
         builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '1';
-          return LessonScreen(lessonId: id);
+          // lessonId format: "track_levelNumber" e.g. "english_1", "development_3"
+          final lessonId = state.pathParameters['lessonId'] ?? 'english_1';
+          return LessonScreen(lessonId: lessonId);
         },
       ),
     ],
