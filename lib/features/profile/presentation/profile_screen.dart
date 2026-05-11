@@ -6,6 +6,9 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/notifications_provider.dart';
 import '../../../core/providers/sound_provider.dart';
+import '../../../core/providers/progress_provider.dart';
+import '../../../core/providers/supabase_auth_provider.dart';
+import '../../../core/utils/league_utils.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -17,6 +20,9 @@ class ProfileScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
 
+    final progress = ref.watch(progressProvider);
+    final authService = ref.read(authServiceProvider);
+    final username = authService.currentUsername ?? 'Coder RIWI';
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -56,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
             ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
             const SizedBox(height: 14),
             Text(
-              'Coder RIWI',
+              username,
               style: TextStyle(
                 color: colorScheme.onSurface,
                 fontSize: 22,
@@ -65,13 +71,8 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              isSpanish ? '@coder_riwi • Nivel 5' : '@coder_riwi • Level 5',
+              '@${username.toLowerCase().replaceAll(' ', '_')}',
               style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isSpanish ? 'Se unió en abril 2026' : 'Joined in April 2026',
-              style: TextStyle(color: colorScheme.outline, fontSize: 12),
             ),
 
             const SizedBox(height: 24),
@@ -82,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   Icons.local_fire_department,
-                  '0',
+                  '${progress.streak}',
                   isSpanish ? 'Racha\nactual' : 'Current\nstreak',
                   Colors.orange,
                 ),
@@ -90,23 +91,23 @@ class ProfileScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   Icons.star_rounded,
-                  '0',
+                  '${progress.totalXP}',
                   isSpanish ? 'XP\ntotal' : 'Total\nXP',
                   Colors.amber,
                 ),
                 const SizedBox(width: 10),
                 _buildStatCard(
                   context,
-                  Icons.emoji_events,
-                  isSpanish ? 'Bronce' : 'Bronze',
+                  leagueForXP(progress.totalXP).icon,
+                  leagueForXP(progress.totalXP).name(isSpanish),
                   isSpanish ? 'Liga\nactual' : 'Current\nleague',
-                  const Color(0xFFCD7F32),
+                  leagueForXP(progress.totalXP).color,
                 ),
                 const SizedBox(width: 10),
                 _buildStatCard(
                   context,
                   Icons.check_circle,
-                  '0',
+                  '${progress.lessonsCompleted}',
                   isSpanish ? 'Lecciones\nhechas' : 'Lessons\ndone',
                   Colors.green,
                 ),
@@ -128,14 +129,14 @@ class ProfileScreen extends ConsumerWidget {
                     Icons.local_fire_department,
                     isSpanish ? 'Racha de 7' : '7 Day Streak',
                     Colors.orange,
-                    false,
+                    progress.streak >= 7,
                   ),
                   _buildAchievementBadge(
                     context,
                     Icons.school,
                     isSpanish ? 'Primera lección' : 'First lesson',
                     colorScheme.primary,
-                    false,
+                    progress.lessonsCompleted >= 1,
                   ),
                   _buildAchievementBadge(
                     context,
@@ -174,12 +175,14 @@ class ProfileScreen extends ConsumerWidget {
             // Progreso por curso
             _buildSectionTitle(context, isSpanish ? 'Progreso por Curso' : 'Course Progress'),
             const SizedBox(height: 12),
-            _buildCourseProgress(context, isSpanish ? 'Inglés' : 'English', Icons.translate, 0, 20, Colors.green),
+            _buildCourseProgress(context, isSpanish ? 'Inglés' : 'English', Icons.translate,
+                progress.completedLevels[0]?.length ?? 0, 23, Colors.green),
             const SizedBox(height: 10),
-            _buildCourseProgress(
-                context, isSpanish ? 'Desarrollo' : 'Development', Icons.code, 0, 15, colorScheme.primary),
+            _buildCourseProgress(context, isSpanish ? 'Desarrollo' : 'Development', Icons.code,
+                progress.completedLevels[1]?.length ?? 0, 5, colorScheme.primary),
             const SizedBox(height: 10),
-            _buildCourseProgress(context, 'Soft Skills', Icons.psychology, 0, 12, Colors.deepOrange),
+            _buildCourseProgress(context, 'Soft Skills', Icons.psychology,
+                progress.completedLevels[2]?.length ?? 0, 5, Colors.deepOrange),
 
             const SizedBox(height: 24),
 
@@ -234,7 +237,7 @@ class ProfileScreen extends ConsumerWidget {
               onTap: () {},
             ),
             const SizedBox(height: 12),
-            _buildLogoutButton(context, isSpanish),
+            _buildLogoutButton(context, ref, isSpanish),
             const SizedBox(height: 32),
           ],
         ),
@@ -305,15 +308,19 @@ class ProfileScreen extends ConsumerWidget {
               value,
               style: TextStyle(
                 color: colorScheme.onSurface,
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             const SizedBox(height: 2),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
+              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 10),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -446,13 +453,18 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, bool isSpanish) {
+  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, bool isSpanish) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {},
+        onPressed: () async {
+          ref.read(progressProvider.notifier).onLogout();
+          await ref.read(authServiceProvider).signOut();
+          if (context.mounted) context.go('/login');
+        },
         icon: const Icon(Icons.logout, size: 20),
-        label: Text(isSpanish ? 'Cerrar Sesión' : 'Logout', style: const TextStyle(fontSize: 16)),
+        label: Text(isSpanish ? 'Cerrar Sesión' : 'Logout',
+            style: const TextStyle(fontSize: 16)),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red.shade400,
           side: BorderSide(color: Colors.red.shade400),

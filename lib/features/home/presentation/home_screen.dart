@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:app_kaplan/shared/widgets/level_node.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/providers/progress_provider.dart';
+import '../../learning/data/levels/english_levels.dart';
+import '../../learning/data/levels/development_levels.dart';
+import '../../learning/data/levels/soft_skills_levels.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,22 +26,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         'name': isSpanish ? 'Inglés' : 'English',
         'icon': Icons.translate,
         'color': const Color(0xFF4CAF50),
-        'levels': 20,
-        'currentLevel': 1,
+        'levels': EnglishLevels.getAllLevels().length,
       },
       {
         'name': isSpanish ? 'Desarrollo' : 'Development',
         'icon': Icons.code,
         'color': const Color(0xFF6B5BFC),
-        'levels': 5,
-        'currentLevel': 1,
+        'levels': DevelopmentLevels.getAllLevels().length,
       },
       {
         'name': 'Soft Skills',
         'icon': Icons.psychology,
         'color': const Color(0xFFFF7043),
-        'levels': 5,
-        'currentLevel': 1,
+        'levels': SoftSkillsLevels.getAllLevels().length,
       },
     ];
   }
@@ -92,13 +93,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final isSpanish = ref.watch(localeProvider).languageCode == 'es';
     final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
+    final progress = ref.watch(progressProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     final courses = _getCourses(isSpanish);
     final course = courses[_selectedCourse];
     final int totalLevels = course['levels'] as int;
-    final int currentLevel = course['currentLevel'] as int;
     final Color courseColor = course['color'] as Color;
 
     return Scaffold(
@@ -124,16 +125,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.local_fire_department, color: Colors.orange, size: 26),
+                const Icon(Icons.local_fire_department, color: Colors.orange, size: 22),
                 const SizedBox(width: 2),
                 Text(
-                  '12',
+                  '${progress.streak}',
                   style: TextStyle(
                     color: Colors.orange.shade400,
                     fontWeight: FontWeight.bold,
-                    fontSize: 17,
+                    fontSize: 15,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -141,16 +144,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.star_rounded, color: Colors.amber, size: 26),
+                const Icon(Icons.star_rounded, color: Colors.amber, size: 22),
                 const SizedBox(width: 2),
                 Text(
-                  '1200',
+                  '${progress.totalXP} XP',
                   style: TextStyle(
                     color: Colors.amber.shade400,
                     fontWeight: FontWeight.bold,
-                    fontSize: 17,
+                    fontSize: 15,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -238,8 +243,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   itemCount: totalLevels,
                   itemBuilder: (context, index) {
                     final levelNumber = index + 1;
-                    final isCompleted = levelNumber < currentLevel;
-                    final isUnlocked = levelNumber <= currentLevel;
+                    final isCompleted = progress.isLevelCompleted(_selectedCourse, levelNumber);
+                    final isUnlocked = progress.isLevelUnlocked(_selectedCourse, levelNumber);
                     final offset = _getOffset(index);
                     
                     // Mostramos una decoración cada 2 niveles en el lado opuesto
@@ -266,8 +271,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             courseColor: courseColor,
                             icon: levelNumber % 5 == 0 ? Icons.inventory_2 : (course['icon'] as IconData),
                             isChest: levelNumber % 5 == 0,
-                            progress: levelNumber == currentLevel ? 0.4 : 0.0,
-                            onTap: () => context.push('/lesson/$levelNumber'),
+                            progress: isUnlocked && !isCompleted ? 0.4 : 0.0,
+                            onTap: isUnlocked
+                                ? () => context.push('/lesson/$_selectedCourse/$levelNumber')
+                                : () {
+                                    ScaffoldMessenger.of(context).clearSnackBars();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            const Icon(Icons.lock, color: Colors.white, size: 18),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              isSpanish
+                                                  ? 'Completa el nivel anterior para desbloquear'
+                                                  : 'Complete the previous level to unlock',
+                                            ),
+                                          ],
+                                        ),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        backgroundColor: Colors.grey.shade800,
+                                      ),
+                                    );
+                                  },
                           ),
                         ],
                       ),
@@ -283,67 +311,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-/// Pinta el conector CURVO entre nodos
-class _CurvedConnectorPainter extends CustomPainter {
-  final double fromOffset;
-  final double toOffset;
-  final bool isActive;
-  final Color activeColor;
-  final bool isDarkMode;
-
-  _CurvedConnectorPainter({
-    required this.fromOffset,
-    required this.toOffset,
-    required this.isActive,
-    required this.activeColor,
-    required this.isDarkMode,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final centerX = size.width / 2;
-    final startX = centerX + (fromOffset * size.width * 0.4);
-    final endX = centerX + (toOffset * size.width * 0.4);
-
-    final start = Offset(startX, 10);
-    final end = Offset(endX, -110); // Ajustado para la nueva altura de 160
-
-    final path = Path();
-    path.moveTo(start.dx, start.dy);
-
-    // Punto de control para la curva más fluida
-    final controlY = (start.dy + end.dy) / 2;
-    path.cubicTo(
-      startX, controlY, // Control 1
-      endX, controlY,   // Control 2
-      end.dx, end.dy,   // Final
-    );
-
-    final baseColor = isDarkMode ? Colors.white12 : Colors.black.withOpacity(0.05);
-
-    final paint = Paint()
-      ..color = isActive ? activeColor.withOpacity(0.4) : baseColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-
-    // Dibujamos el camino
-    canvas.drawPath(path, paint);
-
-    // Si está activo, dibujamos el "hilo" brillante central
-    if (isActive) {
-      canvas.drawPath(path, Paint()
-        ..color = activeColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.round
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CurvedConnectorPainter oldDelegate) => true;
-}
 
 /// Pinta pequeñas hojas muy sutiles en el fondo
 class _GrassPainter extends CustomPainter {

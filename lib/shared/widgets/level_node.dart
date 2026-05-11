@@ -38,7 +38,7 @@ class LevelNode extends StatelessWidget {
     return Align(
       alignment: Alignment(offset, 0),
       child: GestureDetector(
-        onTap: isUnlocked ? onTap : null,
+        onTap: onTap,
         child: SizedBox(
           width: 100,
           height: 100,

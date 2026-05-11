@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/home/presentation/home_screen.dart';
 import '../features/learning/presentation/lesson_screen.dart';
@@ -10,16 +11,36 @@ import '../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../features/leagues/presentation/leagues_screen.dart';
 import '../features/ai_tutor/presentation/ai_tutor_screen.dart';
 import '../features/main_layout/presentation/main_layout_screen.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
 
-// GoRouter configuration
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      final session = Supabase.instance.client.auth.currentSession;
+      final isAuth = session != null;
+      final isAuthRoute = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
+
+      if (!isAuth && !isAuthRoute) return '/login';
+      if (isAuth && isAuthRoute) return '/';
+      return null;
+    },
     routes: [
+      // Rutas públicas
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+
+      // Rutas protegidas con shell (bottom nav)
       ShellRoute(
-        builder: (context, state, child) {
-          return MainLayoutScreen(child: child);
-        },
+        builder: (context, state, child) => MainLayoutScreen(child: child),
         routes: [
           GoRoute(
             path: '/',
@@ -51,11 +72,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+
+      // Lección (fuera del shell, sin bottom nav)
       GoRoute(
-        path: '/lesson/:id',
+        path: '/lesson/:courseIndex/:levelId',
         builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '1';
-          return LessonScreen(lessonId: id);
+          final courseIndex =
+              int.tryParse(state.pathParameters['courseIndex'] ?? '0') ?? 0;
+          final levelId =
+              int.tryParse(state.pathParameters['levelId'] ?? '1') ?? 1;
+          return LessonScreen(courseIndex: courseIndex, levelId: levelId);
         },
       ),
     ],
