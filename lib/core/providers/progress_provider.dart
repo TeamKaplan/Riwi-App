@@ -9,6 +9,7 @@ class ProgressState {
   final int totalXP;
   final int streak;
   final int lessonsCompleted;
+  final String username;
   final DateTime? lastLessonDate;
 
   const ProgressState({
@@ -16,6 +17,7 @@ class ProgressState {
     this.totalXP = 0,
     this.streak = 0,
     this.lessonsCompleted = 0,
+    this.username = '',
     this.lastLessonDate,
   });
 
@@ -36,6 +38,7 @@ class ProgressState {
     int? totalXP,
     int? streak,
     int? lessonsCompleted,
+    String? username,
     DateTime? lastLessonDate,
   }) {
     return ProgressState(
@@ -43,6 +46,7 @@ class ProgressState {
       totalXP: totalXP ?? this.totalXP,
       streak: streak ?? this.streak,
       lessonsCompleted: lessonsCompleted ?? this.lessonsCompleted,
+      username: username ?? this.username,
       lastLessonDate: lastLessonDate ?? this.lastLessonDate,
     );
   }
@@ -54,6 +58,7 @@ class ProgressState {
         'totalXP': totalXP,
         'streak': streak,
         'lessonsCompleted': lessonsCompleted,
+        'username': username,
         'lastLessonDate': lastLessonDate?.toIso8601String(),
       };
 
@@ -66,6 +71,7 @@ class ProgressState {
       totalXP: json['totalXP'] as int? ?? 0,
       streak: json['streak'] as int? ?? 0,
       lessonsCompleted: json['lessonsCompleted'] as int? ?? 0,
+      username: json['username'] as String? ?? '',
       lastLessonDate: json['lastLessonDate'] != null
           ? DateTime.tryParse(json['lastLessonDate'] as String)
           : null,
@@ -90,6 +96,7 @@ class ProgressState {
       totalXP: (row['total_xp'] as num?)?.toInt() ?? 0,
       streak: (row['streak'] as num?)?.toInt() ?? 0,
       lessonsCompleted: (row['lessons_completed'] as num?)?.toInt() ?? 0,
+      username: row['username'] as String? ?? '',
       lastLessonDate: row['last_lesson_date'] != null
           ? DateTime.tryParse(row['last_lesson_date'] as String)
           : null,
@@ -101,6 +108,7 @@ class ProgressState {
         'completed_levels': jsonEncode(
           completedLevels.map((k, v) => MapEntry(k.toString(), v.toList())),
         ),
+        'username': username,
         'total_xp': totalXP,
         'streak': streak,
         'lessons_completed': lessonsCompleted,
@@ -157,14 +165,16 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('total_xp, streak, lessons_completed, completed_levels, last_lesson_date')
+          .select('total_xp, streak, lessons_completed, completed_levels, last_lesson_date, username')
           .eq('id', userId)
           .maybeSingle();
       if (data != null) {
         state = ProgressState.fromSupabase(data);
       } else {
-        // Usuario nuevo sin perfil aún
-        state = const ProgressState();
+        // Usuario nuevo sin perfil aún — intentar obtener nombre de Auth metadata
+        final authUsername = _supabase.auth.currentUser?.userMetadata?['username'] as String? ?? 
+                           _supabase.auth.currentUser?.email?.split('@').first ?? '';
+        state = ProgressState(username: authUsername);
       }
       await _saveLocal(userId);
     } catch (e) {
@@ -197,6 +207,7 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
           'total_xp': state.totalXP,
           'streak': state.streak,
           'lessons_completed': state.lessonsCompleted,
+          'username': state.username,
         }).eq('id', userId);
       } catch (e2) {
         debugPrint('Minimal update also failed: $e2');
