@@ -236,9 +236,29 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     _prepareQuestion();
   }
 
-  void _showCompletion() {
+  Future<void> _showCompletion() async {
     final xp = _level?.xpReward ?? 100;
-    ref.read(progressProvider.notifier).completeLevel(widget.courseIndex, widget.levelId, xp);
+
+    // Bug #2 fix: await and catch errors so the user knows if the save failed.
+    try {
+      await ref
+          .read(progressProvider.notifier)
+          .completeLevel(widget.courseIndex, widget.levelId, xp);
+    } catch (e) {
+      debugPrint('[LessonScreen] Failed to save progress: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('⚠️ No se pudo guardar el progreso. Revisa tu conexión.'),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,

@@ -185,6 +185,8 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
     try {
+      // Bug #1 fix: use upsert which handles INSERT + UPDATE atomically,
+      // guaranteeing the profiles row is created even if the DB trigger failed.
       await _supabase
           .from('profiles')
           .upsert(state.toSupabase(userId), onConflict: 'id');
@@ -198,6 +200,7 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
         }).eq('id', userId);
       } catch (e2) {
         debugPrint('Minimal update also failed: $e2');
+        rethrow; // Re-throw so the caller (completeLevel) can surface the error.
       }
     }
   }
