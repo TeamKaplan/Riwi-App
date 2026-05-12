@@ -1,89 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/providers/locale_provider.dart';
+import '../../../core/providers/progress_provider.dart';
+import '../../../core/utils/league_utils.dart';
+
+final leagueMatesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final progress = ref.watch(progressProvider);
+  final league = leagueForXP(progress.totalXP);
+  final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+  final maxXP = league.maxXP == 999999 ? 9999999 : league.maxXP;
+  final data = await Supabase.instance.client
+      .from('profiles')
+      .select('id, username, total_xp, streak')
+      .gte('total_xp', league.minXP)
+      .lte('total_xp', maxXP)
+      .order('total_xp', ascending: false)
+      .limit(20);
+
+  return List<Map<String, dynamic>>.from(data as List)
+      .where((u) => u['id'] != currentUserId)
+      .toList();
+});
 
 class LeaguesScreen extends ConsumerWidget {
   const LeaguesScreen({super.key});
 
-  // Datos de ligas reiniciados
-  static const int _userXP = 0;
-  static const int _currentLeagueIndex = 4; // Bronce
-
-  static final List<Map<String, dynamic>> _leagues = [
-    {
-      'name': 'Diamante',
-      'nameEn': 'Diamond',
-      'icon': Icons.diamond,
-      'color': const Color(0xFF00BCD4),
-      'minXP': 5000,
-      'maxXP': 99999,
-    },
-    {
-      'name': 'Platino',
-      'nameEn': 'Platinum',
-      'icon': Icons.workspace_premium,
-      'color': const Color(0xFF90A4AE),
-      'minXP': 3000,
-      'maxXP': 4999,
-    },
-    {
-      'name': 'Oro',
-      'nameEn': 'Gold',
-      'icon': Icons.emoji_events,
-      'color': const Color(0xFFFFD700),
-      'minXP': 1000,
-      'maxXP': 2999,
-    },
-    {
-      'name': 'Plata',
-      'nameEn': 'Silver',
-      'icon': Icons.military_tech,
-      'color': const Color(0xFFC0C0C0),
-      'minXP': 500,
-      'maxXP': 999,
-    },
-    {
-      'name': 'Bronce',
-      'nameEn': 'Bronze',
-      'icon': Icons.shield,
-      'color': const Color(0xFFCD7F32),
-      'minXP': 0,
-      'maxXP': 499,
-    },
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSpanish = ref.watch(localeProvider).languageCode == 'es';
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final cs = Theme.of(context).colorScheme;
+    final progress = ref.watch(progressProvider);
+    final leagueMates = ref.watch(leagueMatesProvider);
 
-    final currentLeague = _leagues[_currentLeagueIndex];
-    final nextLeague = _currentLeagueIndex > 0 ? _leagues[_currentLeagueIndex - 1] : null;
-    final currentColor = currentLeague['color'] as Color;
-    final nextMinXP = nextLeague != null ? nextLeague['minXP'] as int : _userXP;
-    final currentMinXP = currentLeague['minXP'] as int;
-    final progress = (_userXP - currentMinXP) / (nextMinXP - currentMinXP);
-
-    final String leagueName = isSpanish ? currentLeague['name'] : currentLeague['nameEn'];
+    final userXP = progress.totalXP;
+    final currentLeague = leagueForXP(userXP);
+    final nextLeague = nextLeagueForXP(userXP);
+    final progressValue = leagueProgress(userXP);
+    final currentColor = currentLeague.color;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: cs.surface,
         elevation: 0,
         title: Text(
           isSpanish ? 'Ligas' : 'Leagues',
-          style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 22),
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 22),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: cs.onSurfaceVariant),
+            onPressed: () => ref.refresh(leagueMatesProvider),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== CARD PRINCIPAL DE LIGA ACTUAL =====
+            // ── CARD LIGA ACTUAL ──
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -108,7 +88,6 @@ class LeaguesScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Icono grande
                   Container(
                     width: 90,
                     height: 90,
@@ -117,24 +96,16 @@ class LeaguesScreen extends ConsumerWidget {
                       color: Colors.white.withOpacity(0.2),
                       border: Border.all(color: Colors.white.withOpacity(0.5), width: 3),
                     ),
-                    child: Icon(
-                      currentLeague['icon'] as IconData,
-                      color: Colors.white,
-                      size: 48,
-                    ),
+                    child: Icon(currentLeague.icon, color: Colors.white, size: 48),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${isSpanish ? 'Liga' : 'League'} $leagueName',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    '${isSpanish ? 'Liga' : 'League'} ${currentLeague.name(isSpanish)}',
+                    style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    isSpanish ? '$_userXP XP acumulados' : '$_userXP XP accumulated',
+                    isSpanish ? '$userXP XP acumulados' : '$userXP XP accumulated',
                     style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 15),
                   ),
                 ],
@@ -143,51 +114,36 @@ class LeaguesScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // ===== BARRA DE PROGRESO A SIGUIENTE LIGA =====
+            // ── PROGRESO HACIA SIGUIENTE LIGA ──
             if (nextLeague != null)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: cs.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colorScheme.outline.withOpacity(0.2), width: 1),
+                  border: Border.all(color: cs.outline.withOpacity(0.2), width: 1),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.trending_up, color: (nextLeague['color'] as Color), size: 22),
+                        Icon(Icons.trending_up, color: nextLeague.color, size: 22),
                         const SizedBox(width: 8),
                         Text(
                           isSpanish
-                              ? 'Progreso hacia ${nextLeague['name']}'
-                              : 'Progress towards ${nextLeague['nameEn']}',
-                          style: TextStyle(
-                            color: colorScheme.onSurface,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                              ? 'Progreso hacia ${nextLeague.nameEs}'
+                              : 'Progress towards ${nextLeague.nameEn}',
+                          style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Barra de progreso
                     Row(
                       children: [
-                        // Liga actual (icono)
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: currentColor.withOpacity(0.2),
-                          ),
-                          child: Icon(currentLeague['icon'] as IconData, color: currentColor, size: 20),
-                        ),
+                        _LeagueIcon(league: currentLeague, size: 36, iconSize: 20),
                         const SizedBox(width: 10),
-                        // Barra
                         Expanded(
                           child: Column(
                             children: [
@@ -197,21 +153,17 @@ class LeaguesScreen extends ConsumerWidget {
                                   height: 14,
                                   child: Stack(
                                     children: [
-                                      // Fondo
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: colorScheme.surfaceContainerHighest,
+                                          color: cs.surfaceContainerHighest,
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                       ),
-                                      // Progreso
                                       FractionallySizedBox(
-                                        widthFactor: progress.clamp(0.0, 1.0),
+                                        widthFactor: progressValue,
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [currentColor, (nextLeague['color'] as Color)],
-                                            ),
+                                            gradient: LinearGradient(colors: [currentColor, nextLeague.color]),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                         ),
@@ -230,156 +182,209 @@ class LeaguesScreen extends ConsumerWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '$_userXP XP',
-                                    style: TextStyle(color: currentColor, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    '$nextMinXP XP',
-                                    style: TextStyle(
-                                      color: (nextLeague['color'] as Color),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  Text('$userXP XP', style: TextStyle(color: currentColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Text('${nextLeague.minXP} XP', style: TextStyle(color: nextLeague.color, fontSize: 12, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 10),
-                        // Liga siguiente (icono)
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: (nextLeague['color'] as Color).withOpacity(0.2),
-                          ),
-                          child: Icon(nextLeague['icon'] as IconData, color: (nextLeague['color'] as Color), size: 20),
-                        ),
+                        _LeagueIcon(league: nextLeague, size: 36, iconSize: 20),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Center(
                       child: Text(
                         isSpanish
-                            ? 'Te faltan ${nextMinXP - _userXP} XP para ascender 🚀'
-                            : 'You need ${nextMinXP - _userXP} more XP to promote 🚀',
-                        style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                            ? 'Te faltan ${nextLeague.minXP - userXP} XP para ascender 🚀'
+                            : 'You need ${nextLeague.minXP - userXP} more XP to promote 🚀',
+                        style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
               ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // ===== TÍTULO =====
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                isSpanish ? 'Todas las Ligas' : 'All Leagues',
-                style: TextStyle(color: colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+            // ── COMPAÑEROS DE LIGA ──
+            Row(
+              children: [
+                Icon(Icons.people_alt_rounded, color: currentColor, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  isSpanish ? 'Compañeros de liga' : 'League mates',
+                  style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            leagueMates.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
               ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  isSpanish ? 'No se pudo cargar.' : 'Could not load.',
+                  style: TextStyle(color: cs.onSurfaceVariant),
+                ),
+              ),
+              data: (mates) {
+                if (mates.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      isSpanish
+                          ? '¡Eres el único en tu liga por ahora!'
+                          : "You're the only one in your league for now!",
+                      style: TextStyle(color: cs.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                return Column(
+                  children: List.generate(mates.length, (i) {
+                    final mate = mates[i];
+                    final username = mate['username'] as String? ?? '???';
+                    final mateXP = mate['total_xp'] as int? ?? 0;
+                    final initials = username.length >= 2
+                        ? username.substring(0, 2).toUpperCase()
+                        : username.toUpperCase();
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: currentColor.withOpacity(0.2),
+                            child: Text(initials, style: TextStyle(color: currentColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(username, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500, fontSize: 15)),
+                          ),
+                          Text('$mateXP XP', style: TextStyle(color: currentColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: (i * 60).ms, duration: 300.ms);
+                  }),
+                );
+              },
+            ),
+
+            const SizedBox(height: 28),
+
+            // ── TODAS LAS LIGAS ──
+            Text(
+              isSpanish ? 'Todas las Ligas' : 'All Leagues',
+              style: TextStyle(color: cs.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 14),
 
-            // ===== LISTA DE LIGAS =====
-            ...List.generate(_leagues.length, (index) {
-              final league = _leagues[index];
-              final isCurrent = index == _currentLeagueIndex;
-              final isCompleted = index > _currentLeagueIndex;
-              final isLocked = index < _currentLeagueIndex;
-              final color = league['color'] as Color;
-              final String name = isSpanish ? league['name'] : league['nameEn'];
+            ...List.generate(kLeagues.length, (i) {
+              // Display Diamond → Bronze (reversed)
+              final league = kLeagues[kLeagues.length - 1 - i];
+              final isCurrent = league == currentLeague;
+              final isAchieved = league.minXP < currentLeague.minXP;
+              final isLocked = league.minXP > currentLeague.minXP;
+              final color = league.color;
+              final maxLabel = league.maxXP == 999999 ? '∞' : '${league.maxXP}';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isCurrent
-                      ? color.withOpacity(0.12)
-                      : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: isCurrent ? color.withOpacity(0.12) : cs.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(16),
                   border: isCurrent
                       ? Border.all(color: color, width: 2)
-                      : Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
+                      : Border.all(color: cs.outline.withOpacity(0.1), width: 1),
                 ),
                 child: Row(
                   children: [
-                    // Icono
                     Container(
-                      width: 50,
-                      height: 50,
+                      width: 50, height: 50,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isLocked ? colorScheme.outline.withOpacity(0.1) : color.withOpacity(0.2),
+                        color: isLocked ? cs.outline.withOpacity(0.1) : color.withOpacity(0.2),
                       ),
-                      child: Icon(
-                        league['icon'] as IconData,
-                        color: isLocked ? colorScheme.outline : color,
-                        size: 26,
-                      ),
+                      child: Icon(league.icon, color: isLocked ? cs.outline : color, size: 26),
                     ),
                     const SizedBox(width: 14),
-                    // Nombre y XP
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            name,
+                            league.name(isSpanish),
                             style: TextStyle(
-                              color: isLocked ? colorScheme.outline : colorScheme.onSurface,
+                              color: isLocked ? cs.outline : cs.onSurface,
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${league['minXP']} - ${league['maxXP']} XP',
+                            '${league.minXP} – $maxLabel XP',
                             style: TextStyle(
-                              color: isLocked ? colorScheme.outline.withOpacity(0.7) : colorScheme.onSurfaceVariant,
+                              color: isLocked ? cs.outline.withOpacity(0.7) : cs.onSurfaceVariant,
                               fontSize: 13,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Badge de estado
                     if (isCurrent)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
                         child: Text(
                           isSpanish ? 'ACTUAL' : 'CURRENT',
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
                         ),
                       )
-                    else if (isCompleted)
+                    else if (isAchieved)
                       Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.green.withOpacity(0.2),
-                        ),
+                        width: 30, height: 30,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.green.withOpacity(0.2)),
                         child: const Icon(Icons.check, color: Colors.green, size: 18),
                       )
                     else
-                      Icon(Icons.lock_outline, color: colorScheme.outline, size: 22),
+                      Icon(Icons.lock_outline, color: cs.outline, size: 22),
                   ],
                 ),
-              ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms);
+              ).animate().fadeIn(delay: (i * 100).ms, duration: 400.ms);
             }),
             const SizedBox(height: 20),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LeagueIcon extends StatelessWidget {
+  final LeagueInfo league;
+  final double size;
+  final double iconSize;
+
+  const _LeagueIcon({required this.league, required this.size, required this.iconSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size, height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: league.color.withOpacity(0.2)),
+      child: Icon(league.icon, color: league.color, size: iconSize),
     );
   }
 }

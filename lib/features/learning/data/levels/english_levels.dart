@@ -1712,16 +1712,16 @@ class EnglishLevels {
           ),
         ],
       ),
-      // =================== LEVEL 30: B2 ===================
+      // =================== LEVEL 21: B2 ===================
       Level(
-        id: 30,
+        id: 21,
         title: 'B2 Review',
         description: 'Review all B2 topics',
         difficulty: 'B2',
         xpReward: 250,
         exercises: [
           Question(
-            id: '30_q1',
+            id: '21_q1',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Past perfect of "go":',
             options: [
@@ -1731,20 +1731,20 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '30_q2',
+            id: '21_q2',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Third conditional:',
             instruction: 'If I ___ (know), I ___ (tell) you.',
             blanksAnswers: ['had known', 'would have told'],
           ),
           Question(
-            id: '30_q3',
+            id: '21_q3',
             type: QuestionType.trueFalse,
             prompt: 'Review: "I had my car repaired" is causative.',
             correctAnswer: 'true',
           ),
           Question(
-            id: '30_q4',
+            id: '21_q4',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Inversion with "never":',
             options: [
@@ -1754,28 +1754,28 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '30_q5',
+            id: '21_q5',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Passive with modal:',
             instruction: 'It must ___ (do). / It is being ___ (build).',
             blanksAnswers: ['be done', 'built'],
           ),
           Question(
-            id: '30_q6',
+            id: '21_q6',
             type: QuestionType.matching,
             prompt: 'Review: Match tenses and examples:',
             matchingLeft: ['past perfect', 'third conditional', 'causative'],
             matchingRight: ['had gone', 'would have gone', 'had it done'],
           ),
           Question(
-            id: '30_q7',
+            id: '21_q7',
             type: QuestionType.orderWords,
             prompt: 'Review: Order the words:',
             instruction: 'had / I / known / never / have / I / such / seen ___ / seen / I / had / If / told / you / I / would / have ___',
             correctAnswer: 'Never have I seen such. If I had known, I would have told you.',
           ),
           Question(
-            id: '30_q8',
+            id: '21_q8',
             type: QuestionType.miniReading,
             prompt: 'Review: Read and answer.',
             instruction: 'What did you learn in B2? (Write 2 topics)',
@@ -1783,14 +1783,14 @@ class EnglishLevels {
             correctAnswer: 'Past perfect, conditionals, causative, etc.',
           ),
           Question(
-            id: '30_q9',
+            id: '21_q9',
             type: QuestionType.completeDialogue,
             prompt: 'Review: Complete the dialogue.',
             instruction: 'A: Why didnt you go? B: If I ___ (have) money, I would have gone.',
             correctAnswer: 'had had',
           ),
           Question(
-            id: '30_q10',
+            id: '21_q10',
             type: QuestionType.errorCorrection,
             prompt: 'Review: Correct the text.',
             instruction: 'I had saw him. If I would have known, I would have told you. I had my car to repair.',
@@ -1798,16 +1798,16 @@ class EnglishLevels {
           ),
         ],
       ),
-      // =================== LEVEL 40: C1 ===================
+      // =================== LEVEL 22: C1 ===================
       Level(
-        id: 40,
+        id: 22,
         title: 'C1 Review',
         description: 'Review all C1 topics',
         difficulty: 'C1',
         xpReward: 350,
         exercises: [
           Question(
-            id: '40_q1',
+            id: '22_q1',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Subjunctive form of "be":',
             options: [
@@ -1817,20 +1817,20 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '40_q2',
+            id: '22_q2',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Advanced modal:',
             instruction: 'You ___ (should) have told me. / He ___ (must) have been there.',
             blanksAnswers: ['should', 'must'],
           ),
           Question(
-            id: '40_q3',
+            id: '22_q3',
             type: QuestionType.trueFalse,
             prompt: 'Review: "Not only did he come" uses inversion.',
             correctAnswer: 'true',
           ),
           Question(
-            id: '40_q4',
+            id: '22_q4',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Formal register:',
             options: [
@@ -1840,28 +1840,28 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '40_q5',
+            id: '22_q5',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Idioms:',
             instruction: 'Its raining ___. / Break a ___ (good luck).',
             blanksAnswers: ['cats and dogs', 'leg'],
           ),
           Question(
-            id: '40_q6',
+            id: '22_q6',
             type: QuestionType.matching,
             prompt: 'Review: Match C levels and topics:',
             matchingLeft: ['C1', 'C2'],
             matchingRight: ['Subjunctive, advanced modals', 'Idioms, register, literary analysis'],
           ),
           Question(
-            id: '40_q7',
+            id: '22_q7',
             type: QuestionType.orderWords,
             prompt: 'Review: Order the words:',
             instruction: 'have / should / You / told / me ___ / writing / am / I / to / enquire ___',
             correctAnswer: 'You should have told me. I am writing to enquire.',
           ),
           Question(
-            id: '40_q8',
+            id: '22_q8',
             type: QuestionType.miniReading,
             prompt: 'Review: Read and answer.',
             instruction: 'What did you learn in C1? (Write 2 topics)',
@@ -1869,14 +1869,14 @@ class EnglishLevels {
             correctAnswer: 'C1: subjunctive, advanced modals. C2: idioms, register, literary analysis.',
           ),
           Question(
-            id: '40_q9',
+            id: '22_q9',
             type: QuestionType.completeDialogue,
             prompt: 'Review: Complete formally.',
             instruction: 'A: I am writing to ___ (ask) about... B: Thank you for your ___.',
             correctAnswer: 'enquire, inquiry',
           ),
           Question(
-            id: '40_q10',
+            id: '22_q10',
             type: QuestionType.errorCorrection,
             prompt: 'Final review: Correct the text.',
             instruction: 'I wanna tell you. You should have went. Not only he came, but he brought gifts. Break a leg means break your leg.',
@@ -1884,16 +1884,16 @@ class EnglishLevels {
           ),
         ],
       ),
-      // =================== LEVEL 50: C2 ===================
+      // =================== LEVEL 23: C2 ===================
       Level(
-        id: 50,
+        id: 23,
         title: 'C2 Mastery Review',
         description: 'Final review of all advanced topics',
         difficulty: 'C2',
         xpReward: 500,
         exercises: [
           Question(
-            id: '50_q1',
+            id: '23_q1',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Subjunctive form of "be":',
             options: [
@@ -1903,20 +1903,20 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '50_q2',
+            id: '23_q2',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Advanced modal:',
             instruction: 'You ___ (should) have told me. / He ___ (must) have been there.',
             blanksAnswers: ['should', 'must'],
           ),
           Question(
-            id: '50_q3',
+            id: '23_q3',
             type: QuestionType.trueFalse,
             prompt: 'Review: "Not only did he come" uses inversion.',
             correctAnswer: 'true',
           ),
           Question(
-            id: '50_q4',
+            id: '23_q4',
             type: QuestionType.multipleChoice,
             prompt: 'Review: Formal register:',
             options: [
@@ -1926,28 +1926,28 @@ class EnglishLevels {
             ],
           ),
           Question(
-            id: '50_q5',
+            id: '23_q5',
             type: QuestionType.fillInTheBlanks,
             prompt: 'Review: Idioms:',
             instruction: 'Its raining ___. / Break a ___ (good luck).',
             blanksAnswers: ['cats and dogs', 'leg'],
           ),
           Question(
-            id: '50_q6',
+            id: '23_q6',
             type: QuestionType.matching,
             prompt: 'Review: Match C levels and topics:',
             matchingLeft: ['C1', 'C2'],
             matchingRight: ['Subjunctive, advanced modals', 'Idioms, register, literary analysis'],
           ),
           Question(
-            id: '50_q7',
+            id: '23_q7',
             type: QuestionType.orderWords,
             prompt: 'Review: Order the words:',
             instruction: 'have / should / You / told / me ___ / writing / am / I / to / enquire ___',
             correctAnswer: 'You should have told me. I am writing to enquire.',
           ),
           Question(
-            id: '50_q8',
+            id: '23_q8',
             type: QuestionType.miniReading,
             prompt: 'Review: Read and answer.',
             instruction: 'What did you learn in C1 and C2? (Write 2 topics from each)',
@@ -1955,14 +1955,14 @@ class EnglishLevels {
             correctAnswer: 'C1: subjunctive, advanced modals. C2: idioms, register, literary analysis.',
           ),
           Question(
-            id: '50_q9',
+            id: '23_q9',
             type: QuestionType.completeDialogue,
             prompt: 'Review: Complete formally.',
             instruction: 'A: I am writing to ___ (ask) about... B: Thank you for your ___.',
             correctAnswer: 'enquire, inquiry',
           ),
           Question(
-            id: '50_q10',
+            id: '23_q10',
             type: QuestionType.errorCorrection,
             prompt: 'Final review: Correct the text.',
             instruction: 'I wanna tell you. You should have went. Not only he came, but he brought gifts. Break a leg means break your leg.',
