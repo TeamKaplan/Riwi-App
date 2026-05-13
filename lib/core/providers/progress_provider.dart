@@ -78,19 +78,7 @@ class ProgressState {
     );
   }
 
-  factory ProgressState.fromSupabase(Map<String, dynamic> row) {
-    final rawLevels = row['completed_levels'];
-    Map<int, Set<int>> completed = {0: {}, 1: {}, 2: {}};
-    if (rawLevels != null) {
-      final decoded = rawLevels is String
-          ? jsonDecode(rawLevels) as Map<String, dynamic>
-          : rawLevels as Map<String, dynamic>;
-      completed = decoded.map((k, v) =>
-          MapEntry(int.parse(k), Set<int>.from((v as List).map((e) => e as int))));
-      for (int i = 0; i < 3; i++) {
-        completed.putIfAbsent(i, () => {});
-      }
-    }
+  factory ProgressState.fromSupabase(Map<String, dynamic> row, Map<int, Set<int>> completed) {
     return ProgressState(
       completedLevels: completed,
       totalXP: (row['total_xp'] as num?)?.toInt() ?? 0,
@@ -103,11 +91,21 @@ class ProgressState {
     );
   }
 
+  static Map<int, Set<int>> levelsFromRows(List<dynamic> rows) {
+    Map<int, Set<int>> completed = {0: {}, 1: {}, 2: {}};
+    for (var row in rows) {
+      final courseId = (row['course_id'] as num).toInt();
+      final levelId = (row['level_id'] as num).toInt();
+      if (!completed.containsKey(courseId)) {
+        completed[courseId] = {};
+      }
+      completed[courseId]!.add(levelId);
+    }
+    return completed;
+  }
+
   Map<String, dynamic> toSupabase(String userId) => {
         'id': userId,
-        'completed_levels': jsonEncode(
-          completedLevels.map((k, v) => MapEntry(k.toString(), v.toList())),
-        ),
         'username': username,
         'total_xp': totalXP,
         'streak': streak,
@@ -154,7 +152,10 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_localKey(userId));
       if (raw != null) {
-        state = ProgressState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        final loadedState = ProgressState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        // Bug #3 fix: Recalcular racha al cargar localmente
+        final updatedStreak = _computeStreak(loadedState.streak, loadedState.lastLessonDate, DateTime.now());
+        state = loadedState.copyWith(streak: updatedStreak);
       }
     } catch (e) {
       debugPrint('Error loading local progress: $e');
@@ -163,13 +164,26 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
 
   Future<void> _loadFromSupabase(String userId) async {
     try {
-      final data = await _supabase
+      // 1. Cargar datos del perfil
+      final profileData = await _supabase
           .from('profiles')
-          .select('total_xp, streak, lessons_completed, completed_levels, last_lesson_date, username')
+          .select('total_xp, streak, lessons_completed, last_lesson_date, username')
           .eq('id', userId)
           .maybeSingle();
-      if (data != null) {
-        state = ProgressState.fromSupabase(data);
+
+      if (profileData != null) {
+        // 2. Cargar niveles desde la nueva tabla relacional (Normalización 3FN)
+        final levelsData = await _supabase
+            .from('user_progress')
+            .select('course_id, level_id')
+            .eq('user_id', userId);
+
+        final completed = ProgressState.levelsFromRows(levelsData);
+        final loadedState = ProgressState.fromSupabase(profileData, completed);
+        
+        // Bug #3 fix: Recalcular racha al cargar de Supabase
+        final updatedStreak = _computeStreak(loadedState.streak, loadedState.lastLessonDate, DateTime.now());
+        state = loadedState.copyWith(streak: updatedStreak);
       } else {
         // Usuario nuevo sin perfil aún — intentar obtener nombre de Auth metadata
         final authUsername = _supabase.auth.currentUser?.userMetadata?['username'] as String? ?? 
@@ -191,28 +205,28 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     }
   }
 
-  Future<void> _saveToSupabase() async {
+  Future<void> _saveToSupabase({int? newCourseId, int? newLevelId}) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
+
     try {
-      // Bug #1 fix: use upsert which handles INSERT + UPDATE atomically,
-      // guaranteeing the profiles row is created even if the DB trigger failed.
+      // 1. Actualizar perfil (XP, racha, etc)
       await _supabase
           .from('profiles')
           .upsert(state.toSupabase(userId), onConflict: 'id');
-    } catch (e) {
-      debugPrint('Full upsert failed ($e), trying minimal update...');
-      try {
-        await _supabase.from('profiles').update({
-          'total_xp': state.totalXP,
-          'streak': state.streak,
-          'lessons_completed': state.lessonsCompleted,
-          'username': state.username,
-        }).eq('id', userId);
-      } catch (e2) {
-        debugPrint('Minimal update also failed: $e2');
-        rethrow; // Re-throw so the caller (completeLevel) can surface the error.
+
+      // 2. Si se completó un nivel, registrar en la tabla relacional
+      if (newCourseId != null && newLevelId != null) {
+        await _supabase.from('user_progress').upsert({
+          'user_id': userId,
+          'course_id': newCourseId,
+          'level_id': newLevelId,
+          'completed_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'user_id, course_id, level_id');
       }
+    } catch (e) {
+      debugPrint('Error saving to Supabase: $e');
+      rethrow;
     }
   }
 
@@ -238,7 +252,7 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
 
     final userId = _supabase.auth.currentUser?.id;
     if (userId != null) await _saveLocal(userId);
-    await _saveToSupabase();
+    await _saveToSupabase(newCourseId: courseIndex, newLevelId: levelId);
   }
 
   /// Llamar tras login exitoso para cargar el progreso del usuario recién autenticado.

@@ -46,7 +46,6 @@ class AuthService {
           'total_xp': 0,
           'streak': 0,
           'lessons_completed': 0,
-          'completed_levels': '{"0":[],"1":[],"2":[]}',
         });
       } catch (e) {
         // El perfil se puede crear luego en el primer login
