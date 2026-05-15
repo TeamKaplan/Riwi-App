@@ -46,7 +46,6 @@ class AuthService {
           'total_xp': 0,
           'streak': 0,
           'lessons_completed': 0,
-          'completed_levels': '{"0":[],"1":[],"2":[]}',
         });
       } catch (e) {
         // El perfil se puede crear luego en el primer login
@@ -60,7 +59,27 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    return _client.auth.signInWithPassword(email: email, password: password);
+    final response = await _client.auth.signInWithPassword(email: email, password: password);
+    
+    // Bug #6 fix: Asegurar que el perfil exista al iniciar sesión
+    if (response.user != null) {
+      try {
+        final userId = response.user!.id;
+        final username = response.user!.userMetadata?['username'] as String? ?? email.split('@').first;
+        
+        await _client.from('profiles').upsert({
+          'id': userId,
+          'username': username,
+          'email': email,
+          // No sobreescribimos XP ni racha si ya existen, upsert se encarga si la tabla está bien configurada
+          // O podemos usar un select previo si preferimos ser cautelosos.
+        }, onConflict: 'id');
+      } catch (e) {
+        debugPrint('Error garantizando perfil en login: $e');
+      }
+    }
+    
+    return response;
   }
 
   Future<void> signOut() async {
