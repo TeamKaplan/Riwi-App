@@ -42,10 +42,13 @@ class ProfileScreen extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: Icon(Icons.edit_outlined, color: colorScheme.onSurfaceVariant),
+            tooltip: isSpanish ? 'Editar perfil' : 'Edit profile',
+            onPressed: () => context.push('/edit-profile'),
+          ),
+          IconButton(
             icon: Icon(Icons.settings, color: colorScheme.onSurfaceVariant),
-            onPressed: () {
-              _showSettingsSheet(context, ref, isSpanish);
-            },
+            onPressed: () => _showSettingsSheet(context, ref, isSpanish),
           ),
         ],
       ),
@@ -143,28 +146,32 @@ class ProfileScreen extends ConsumerWidget {
                     Icons.code,
                     'Coder Jr.',
                     Colors.cyan,
-                    false,
+                    // Completó al menos un nivel de Desarrollo
+                    (progress.completedLevels[1]?.isNotEmpty ?? false),
                   ),
                   _buildAchievementBadge(
                     context,
                     Icons.translate,
-                    isSpanish ? '50 traducciones' : '50 translations',
+                    isSpanish ? '5 niveles inglés' : '5 English levels',
                     Colors.green,
-                    false,
+                    // Completó 5+ niveles de Inglés
+                    (progress.completedLevels[0]?.length ?? 0) >= 5,
                   ),
                   _buildAchievementBadge(
                     context,
                     Icons.psychology,
                     isSpanish ? 'Empatía Pro' : 'Pro Empathy',
                     Colors.pink,
-                    false,
+                    // Completó al menos un nivel de Soft Skills
+                    (progress.completedLevels[2]?.isNotEmpty ?? false),
                   ),
                   _buildAchievementBadge(
                     context,
                     Icons.diamond,
                     isSpanish ? 'Liga Diamante' : 'Diamond League',
                     Colors.cyan,
-                    false,
+                    // Alcanzó 5000 XP (nivel Diamante)
+                    progress.totalXP >= 5000,
                   ),
                 ],
               ),
@@ -227,14 +234,14 @@ class ProfileScreen extends ConsumerWidget {
               Icons.privacy_tip_outlined,
               isSpanish ? 'Privacidad' : 'Privacy',
               isSpanish ? 'Perfil público' : 'Public profile',
-              onTap: () {},
+              onTap: () => context.push('/privacy'),
             ),
             _buildSettingItem(
               context,
               Icons.help_outline,
               isSpanish ? 'Ayuda y soporte' : 'Help & Support',
-              '',
-              onTap: () {},
+              isSpanish ? 'FAQ y contacto' : 'FAQ & contact',
+              onTap: () => context.push('/help'),
             ),
             const SizedBox(height: 12),
             _buildLogoutButton(context, ref, isSpanish),

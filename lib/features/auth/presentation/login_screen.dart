@@ -12,6 +12,9 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
+// Regex RFC 5322 simplificado para validación de email
+final _emailRegex = RegExp(r'^[\w.+\-]+@[\w\-]+\.[a-zA-Z]{2,}$');
+
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
@@ -52,6 +55,84 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (msg.contains('Email not confirmed')) return 'Confirma tu email antes de ingresar.';
     if (msg.contains('network')) return 'Sin conexión. Verifica tu internet.';
     return msg;
+  }
+
+  Future<void> _showForgotPassword(BuildContext ctx, ColorScheme cs) async {
+    final ctrl = TextEditingController(text: _emailCtrl.text.trim());
+    String? dialogError;
+    bool sent = false;
+
+    await showDialog<void>(
+      context: ctx,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
+          backgroundColor: cs.surface,
+          title: Text(
+            '¿Olvidaste tu contraseña?',
+            style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Te enviaremos un enlace para restablecer tu contraseña.',
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              if (!sent)
+                TextField(
+                  controller: ctrl,
+                  keyboardType: TextInputType.emailAddress,
+                  style: TextStyle(color: cs.onSurface),
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined, color: cs.primary),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    errorText: dialogError,
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '¡Enlace enviado! Revisa tu bandeja de entrada.',
+                        style: TextStyle(color: cs.onSurface, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(sent ? 'Cerrar' : 'Cancelar', style: TextStyle(color: cs.onSurfaceVariant)),
+            ),
+            if (!sent)
+              FilledButton(
+                onPressed: () async {
+                  final email = ctrl.text.trim();
+                  if (!_emailRegex.hasMatch(email)) {
+                    setDialogState(() => dialogError = 'Email inválido');
+                    return;
+                  }
+                  try {
+                    await Supabase.instance.client.auth.resetPasswordForEmail(email);
+                    setDialogState(() { sent = true; dialogError = null; });
+                  } catch (e) {
+                    setDialogState(() => dialogError = 'Error al enviar. Intenta de nuevo.');
+                  }
+                },
+                child: const Text('Enviar'),
+              ),
+          ],
+        ),
+      ),
+    );
+    ctrl.dispose();
   }
 
   @override
@@ -96,7 +177,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     decoration: _inputDeco(cs, 'Email', Icons.email_outlined),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Campo requerido';
-                      if (!v.contains('@')) return 'Email inválido';
+                      if (!_emailRegex.hasMatch(v.trim())) return 'Email inválido';
                       return null;
                     },
                   ),
@@ -117,11 +198,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Campo requerido';
-                      if (v.length < 6) return 'Mínimo 6 caracteres';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
+
+                  // Forgot password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => _showForgotPassword(context, cs),
+                      child: Text(
+                        '¿Olvidaste tu contraseña?',
+                        style: TextStyle(color: cs.primary, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
 
                   // Error
                   if (_error != null)

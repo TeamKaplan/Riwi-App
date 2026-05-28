@@ -86,9 +86,26 @@ class AuthService {
     await _client.auth.signOut();
   }
 
+  /// Actualiza el username en auth metadata y en la tabla profiles.
+  Future<void> updateUsername(String newUsername) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw Exception('No hay sesión activa');
+
+    await _client.auth.updateUser(
+      UserAttributes(data: {'username': newUsername}),
+    );
+    await _client.from('profiles').update({'username': newUsername}).eq('id', userId);
+  }
+
+  /// Cambia la contraseña del usuario autenticado.
+  Future<void> updatePassword(String newPassword) async {
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
   String? get currentUserId => _client.auth.currentUser?.id;
   String? get currentUsername =>
       _client.auth.currentUser?.userMetadata?['username'] as String?;
+  String? get currentEmail => _client.auth.currentUser?.email;
 }
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());

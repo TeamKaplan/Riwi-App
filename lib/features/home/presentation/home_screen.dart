@@ -9,9 +9,8 @@ import 'package:app_kaplan/shared/widgets/level_node.dart';
 import '../../../core/providers/locale_provider.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/progress_provider.dart';
-import '../../learning/data/levels/english_levels.dart';
-import '../../learning/data/levels/development_levels.dart';
-import '../../learning/data/levels/soft_skills_levels.dart';
+import '../../../core/providers/levels_provider.dart';
+import '../../../core/services/levels_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -315,24 +314,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   List<Map<String, dynamic>> _getCourses(bool isSpanish) {
+    int count(int courseIndex) => ref.read(levelsProvider(courseIndex)).value?.length
+        ?? LevelsService.localLevels(courseIndex).length;
+
     return [
       {
-        'name': isSpanish ? 'Inglés' : 'English',
-        'icon': Icons.translate,
-        'color': const Color(0xFF4CAF50),
-        'levels': EnglishLevels.getAllLevels().length,
+        'name':   isSpanish ? 'Inglés' : 'English',
+        'icon':   Icons.translate,
+        'color':  const Color(0xFF4CAF50),
+        'levels': count(0),
       },
       {
-        'name': isSpanish ? 'Desarrollo' : 'Development',
-        'icon': Icons.code,
-        'color': const Color(0xFF6B5BFC),
-        'levels': DevelopmentLevels.getAllLevels().length,
+        'name':   isSpanish ? 'Desarrollo' : 'Development',
+        'icon':   Icons.code,
+        'color':  const Color(0xFF6B5BFC),
+        'levels': count(1),
       },
       {
-        'name': 'Soft Skills',
-        'icon': Icons.psychology,
-        'color': const Color(0xFFFF7043),
-        'levels': SoftSkillsLevels.getAllLevels().length,
+        'name':   'Soft Skills',
+        'icon':   Icons.psychology,
+        'color':  const Color(0xFFFF7043),
+        'levels': count(2),
       },
     ];
   }

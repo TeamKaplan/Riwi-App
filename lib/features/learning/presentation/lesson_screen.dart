@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../data/levels/english_levels.dart';
-import '../data/levels/development_levels.dart';
-import '../data/levels/soft_skills_levels.dart';
 import '../data/models/level_model.dart';
 import '../data/models/question_model.dart';
 import '../../../core/providers/progress_provider.dart';
+import '../../../core/providers/levels_provider.dart';
 
 // ─────────────────────────────────────────────
 //  PANTALLA PRINCIPAL
@@ -24,7 +22,7 @@ class LessonScreen extends ConsumerStatefulWidget {
 }
 
 class _LessonScreenState extends ConsumerState<LessonScreen> {
-  late final Level? _level;
+  Level? _level;
   int _currentIndex = 0;
   int _correctCount = 0;
   bool _answered = false;
@@ -42,30 +40,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   @override
   void initState() {
     super.initState();
-    _level = _loadLevel();
-    _prepareQuestion();
+    // El nivel se inicializa cuando el provider retorna datos (ver build)
   }
 
-  Level? _loadLevel() {
-    final List<Level> levels;
-    switch (widget.courseIndex) {
-      case 0:
-        levels = EnglishLevels.getAllLevels();
-        break;
-      case 1:
-        levels = DevelopmentLevels.getAllLevels();
-        break;
-      case 2:
-        levels = SoftSkillsLevels.getAllLevels();
-        break;
-      default:
-        levels = EnglishLevels.getAllLevels();
-    }
+  void _initWithLevels(List<Level> levels) {
+    if (_level != null) return; // ya inicializado
+    Level? found;
     try {
-      return levels.firstWhere((l) => l.id == widget.levelId);
+      found = levels.firstWhere((l) => l.id == widget.levelId);
     } catch (_) {
-      return levels.isNotEmpty ? levels.first : null;
+      found = levels.isNotEmpty ? levels.first : null;
     }
+    setState(() {
+      _level = found;
+    });
+    _prepareQuestion();
   }
 
   void _prepareQuestion() {
@@ -281,11 +270,38 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+    // Cargar niveles desde Supabase (con fallback local)
+    final levelsAsync = ref.watch(levelsProvider(widget.courseIndex));
+    levelsAsync.whenData((levels) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _initWithLevels(levels);
+      });
+    });
+
     if (_level == null) {
       return Scaffold(
-        appBar: AppBar(leading: BackButton(onPressed: () => context.go('/'))),
-        body: const Center(child: Text('Nivel no encontrado')),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => context.go('/'),
+          ),
+        ),
+        body: levelsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:   (_, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Error cargando el nivel'),
+                TextButton(onPressed: () => context.go('/'), child: const Text('Volver')),
+              ],
+            ),
+          ),
+          data: (_) => const Center(child: CircularProgressIndicator()),
+        ),
       );
     }
 

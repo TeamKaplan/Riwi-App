@@ -13,6 +13,9 @@ import '../features/ai_tutor/presentation/ai_tutor_screen.dart';
 import '../features/main_layout/presentation/main_layout_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/profile/presentation/edit_profile_screen.dart';
+import '../features/profile/presentation/privacy_screen.dart';
+import '../features/profile/presentation/help_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -69,6 +72,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sounds',
             builder: (context, state) => const SoundScreen(),
+          ),
+          GoRoute(
+            path: '/edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+          GoRoute(
+            path: '/privacy',
+            builder: (context, state) => const PrivacyScreen(),
+          ),
+          GoRoute(
+            path: '/help',
+            builder: (context, state) => const HelpScreen(),
           ),
         ],
       ),

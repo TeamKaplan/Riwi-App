@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/providers/supabase_auth_provider.dart';
 import '../../../core/providers/progress_provider.dart';
 
+final _emailRegex = RegExp(r'^[\w.+\-]+@[\w\-]+\.[a-zA-Z]{2,}$');
+
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -99,6 +101,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Campo requerido';
                       if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (v.trim().length > 30) return 'Máximo 30 caracteres';
+                      if (!RegExp(r'^[\w\-. ]+$').hasMatch(v.trim())) {
+                        return 'Solo letras, números, guiones y puntos';
+                      }
                       return null;
                     },
                   ),
@@ -112,7 +118,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: _inputDeco(cs, 'Email', Icons.email_outlined),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Campo requerido';
-                      if (!v.contains('@')) return 'Email inválido';
+                      if (!_emailRegex.hasMatch(v.trim())) return 'Email inválido';
                       return null;
                     },
                   ),
@@ -135,7 +141,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Campo requerido';
-                      if (v.length < 6) return 'Mínimo 6 caracteres';
+                      if (v.length < 8) return 'Mínimo 8 caracteres';
+                      if (!RegExp(r'[A-Za-z]').hasMatch(v)) return 'Debe contener al menos una letra';
+                      if (!RegExp(r'[0-9]').hasMatch(v)) return 'Debe contener al menos un número';
                       return null;
                     },
                   ),
